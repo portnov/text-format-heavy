@@ -3,6 +3,7 @@
 module Data.Text.Format.Heavy.Instances where
 
 import Data.String
+import Data.Char
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -39,6 +40,9 @@ instance Formatable TL.Text where
 data Single a = Single {getSingle :: a}
   deriving (Eq, Show)
 
+-- data Many a = Many {getMany :: [a]}
+--   deriving (Eq, Show)
+
 instance Formatable a => Formatable (Single a) where
   format fmt (Single x) = format fmt x
 
@@ -63,6 +67,15 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d) => VarContaine
   lookupVar "2" (_,_,c,_) = Just $ Variable c
   lookupVar "3" (_,_,_,d) = Just $ Variable d
   lookupVar _ _ = Nothing
+
+instance Formatable a => VarContainer [a] where
+  lookupVar name lst =
+    if not $ T.all isDigit name
+      then Nothing
+      else let n = read (T.unpack name)
+           in  if n >= length lst
+               then Nothing
+               else Just $ Variable (lst !! n)
   
 instance Formatable x => VarContainer [(T.Text, x)] where
   lookupVar name pairs = Variable `fmap` lookup name pairs
