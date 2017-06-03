@@ -14,9 +14,9 @@
 module Data.Text.Format.Heavy.Parse
   (-- * Parse functions
    parseFormat, parseFormat',
-   parseGenericFormat,
+   parseGenericFormat, parseBoolFormat,
    -- * Parsec functions
-   pFormat, pGenericFormat,
+   pFormat, pGenericFormat, pBoolFormat,
    -- * Utility types
    Parser, ParserState (..), initParserState
   ) where
@@ -171,4 +171,14 @@ pGenericFormat = do
 -- | Parse generic variable format.
 parseGenericFormat :: TL.Text -> Either ParseError GenericFormat
 parseGenericFormat text = runParser pGenericFormat () "<variable format specification>" text
+
+pBoolFormat :: Parsec TL.Text st BoolFormat
+pBoolFormat = do
+  true <- many $ noneOf ":,;"
+  oneOf ":,;"
+  false <- many $ anyChar
+  return $ BoolFormat (TL.pack true) (TL.pack false)
+
+parseBoolFormat :: TL.Text -> Either ParseError BoolFormat
+parseBoolFormat text = runParser pBoolFormat () "<boolean format specification>" text
 

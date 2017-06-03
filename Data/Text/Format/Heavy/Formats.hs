@@ -1,7 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | This module contains format descriptions for most used variable types.
 module Data.Text.Format.Heavy.Formats where
 
 import Data.Default
+import qualified Data.Text.Lazy as TL
 
 import Data.Text.Format.Heavy.Types
 
@@ -39,4 +41,13 @@ instance Default GenericFormat where
         , gfPrecision = Nothing
         , gfRadix = Nothing
         }
+
+data BoolFormat = BoolFormat {
+    bfTrue :: TL.Text
+  , bfFalse :: TL.Text
+  }
+  deriving (Eq, Show)
+
+instance Default BoolFormat where
+  def = BoolFormat "true" "false"
 

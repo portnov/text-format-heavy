@@ -5,7 +5,7 @@ module Data.Text.Format.Heavy.Build
    makeBuilder,
    -- * Formatters building utilities
    align, applySign, applySharp,
-   formatInt, formatStr, formatFloat
+   formatInt, formatStr, formatFloat, formatBool
   ) where
 
 import Control.Monad
@@ -93,4 +93,8 @@ formatFloat fmt x =
 -- | Format Text according to Genericformat.
 formatStr :: GenericFormat -> TL.Text -> B.Builder
 formatStr fmt text = align fmt $ B.fromLazyText text
+
+formatBool :: BoolFormat -> Bool -> B.Builder
+formatBool fmt True = B.fromLazyText $ bfTrue fmt
+formatBool fmt False = B.fromLazyText $ bfFalse fmt
 

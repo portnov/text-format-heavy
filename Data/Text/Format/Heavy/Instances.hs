@@ -24,8 +24,12 @@ import Data.Text.Format.Heavy.Build
 instance IsString Format where
   fromString str = parseFormat' (fromString str)
 
+----------------------- IsVarFormat instances --------------------------------------
+
 instance IsVarFormat GenericFormat where
   parseVarFormat text = either (Left . show) Right $ parseGenericFormat text
+
+
 
 ---------------------- Generic formatters -------------------------------------------
 
@@ -79,6 +83,13 @@ instance Formatable TL.Text where
     case parseGenericFormat fmtStr of
       Left err -> Left $ show err
       Right fmt -> Right $ formatStr fmt text
+
+instance Formatable Bool where
+  formatVar Nothing x = Right $ formatBool def x
+  formatVar (Just fmtStr) x =
+    case parseBoolFormat fmtStr of
+      Left err -> Left $ show err
+      Right fmt -> Right $ formatBool fmt x
 
 -- | Container for single parameter.
 -- Example usage:
@@ -157,6 +168,17 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "3" (_,_,_,d,_,_) = Just $ Variable d
   lookupVar "4" (_,_,_,_,e,_) = Just $ Variable e
   lookupVar "5" (_,_,_,_,_,f) = Just $ Variable f
+  lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g)
+     => VarContainer (a, b, c, d, e, f, g) where
+  lookupVar "0" (a,_,_,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_,_,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e,_,_) = Just $ Variable e
+  lookupVar "5" (_,_,_,_,_,f,_) = Just $ Variable f
+  lookupVar "6" (_,_,_,_,_,_,g) = Just $ Variable g
   lookupVar _ _ = Nothing
 
 instance Formatable a => VarContainer [a] where
