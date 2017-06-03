@@ -16,6 +16,8 @@ import Data.Text.Format.Heavy.Parse
 instance IsString Format where
   fromString str = parseFormat' (fromString str)
 
+------------------------ Formatable instances -------------------------------------------
+
 instance Formatable Int where
   format Nothing x = decimal x
   format (Just "x") x = hexadecimal x
@@ -63,6 +65,8 @@ instance Formatable a => Formatable (Maybe a) where
 instance (Formatable a, Formatable b) => Formatable (Either a b) where
   format fmt (Left x) = format fmt x
   format fmt (Right y) = format fmt y
+
+------------------------------- VarContainer instances -------------------------------------
 
 instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
