@@ -133,6 +133,9 @@ instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
   lookupVar _ _ = Nothing
 
+instance VarContainer () where
+  lookupVar _ _ = Nothing
+
 instance (Formatable a, Formatable b) => VarContainer (a, b) where
   lookupVar "0" (a,_) = Just $ Variable a
   lookupVar "1" (_,b) = Just $ Variable b
