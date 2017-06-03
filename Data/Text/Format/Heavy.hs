@@ -12,5 +12,5 @@ module Data.Text.Format.Heavy
 
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Build (formatText)
-import Data.Text.Format.Heavy.Instances
+import Data.Text.Format.Heavy.Instances (Single (..), Shown (..))
 
