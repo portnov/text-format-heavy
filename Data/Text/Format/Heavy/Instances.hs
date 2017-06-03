@@ -55,6 +55,11 @@ instance Show a => Show (Shown a) where
 instance Show a => Formatable (Shown a) where
   format _ (Shown x) = B.fromLazyText $ TL.pack $ show x
 
+instance Formatable a => Formatable (Maybe a) where
+  format Nothing Nothing = mempty
+  format (Just "") Nothing = mempty
+  format fmt (Just x) = format fmt x
+
 instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
   lookupVar _ _ = Nothing
@@ -75,6 +80,15 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d) => VarContaine
   lookupVar "1" (_,b,_,_) = Just $ Variable b
   lookupVar "2" (_,_,c,_) = Just $ Variable c
   lookupVar "3" (_,_,_,d) = Just $ Variable d
+  lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e)
+     => VarContainer (a, b, c, d, e) where
+  lookupVar "0" (a,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e) = Just $ Variable e
   lookupVar _ _ = Nothing
 
 instance Formatable a => VarContainer [a] where
