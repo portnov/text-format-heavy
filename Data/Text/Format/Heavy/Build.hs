@@ -1,6 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Text.Format.Heavy.Build where
+module Data.Text.Format.Heavy.Build
+  (formatText,
+   makeBuilder,
+   -- * Formatters building utilities
+   align, applySign, applySharp,
+   formatInt, formatStr, formatFloat
+  ) where
 
 import Data.Monoid
 import Data.Maybe
@@ -21,6 +27,7 @@ makeBuilder (Format items) vars = mconcat $ map go items
         Nothing -> error $ "Parameter not found: " ++ TL.unpack name
         Just var -> formatVar fmt var
 
+-- | The main formatting function.
 formatText :: VarContainer vars => Format -> vars -> TL.Text
 formatText fmt vars = B.toLazyText $ makeBuilder fmt vars
 
@@ -32,12 +39,14 @@ align' width AlignRight fill text =
 align' width AlignCenter fill text =
   B.fromLazyText $ TL.center (fromIntegral width) fill $ B.toLazyText text
 
+-- | Align text within available width according to format
 align :: GenericFormat -> B.Builder -> B.Builder
 align fmt text =
   case (gfAlign fmt, gfWidth fmt) of
     (Just a, Just w) -> align' w a (gfFillChar fmt) text
     _ -> text
 
+-- | Add @+/-@ sign to the number representation, if required
 applySign :: (Num a, Ord a) => Sign -> a -> B.Builder -> B.Builder
 applySign Always x text =
   if x >= 0
@@ -52,11 +61,13 @@ applySign SpaceForPositive x text =
     then B.singleton ' ' <> text
     else B.singleton '-' <> text
 
+-- | Add @0x@ to the number representation, if required
 applySharp :: Bool -> Radix -> B.Builder -> B.Builder
 applySharp False _ text = text
 applySharp True Decimal text = text
 applySharp True Hexadecimal text = B.fromLazyText "0x" <> text
 
+-- | Format integer number according to Genericformat
 formatInt :: Integral a => GenericFormat -> a -> B.Builder
 formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x fmt) radix $ inRadix
   where
@@ -65,10 +76,12 @@ formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x
                Decimal -> decimal (abs x)
                Hexadecimal -> hexadecimal (abs x)
 
+-- | Format floating-point number according to Genericformat
 formatFloat :: RealFloat a => GenericFormat -> a -> B.Builder
 formatFloat fmt x =
   align fmt $ applySign (gfSign fmt) x $ formatRealFloat Fixed (gfPrecision fmt) $ abs x
 
+-- | Format Text according to Genericformat.
 formatStr :: GenericFormat -> TL.Text -> B.Builder
 formatStr fmt text = align fmt $ B.fromLazyText text
 

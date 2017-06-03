@@ -1,6 +1,11 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances, UndecidableInstances #-}
-
-module Data.Text.Format.Heavy.Instances where
+-- | This module contains Formatable and VarContainer instances for most used types.
+module Data.Text.Format.Heavy.Instances
+  (-- * Utility data types
+   Single (..), Shown (..),
+   -- * Generic formatters
+   genericIntFormat, genericFloatFormat
+  ) where
 
 import Data.String
 import Data.Char
@@ -21,8 +26,9 @@ instance IsString Format where
 instance IsVarFormat GenericFormat where
   parseVarFormat text = either (Left . show) Right $ parseGenericFormat text
 
------------------------- Formatable instances -------------------------------------------
+---------------------- Generic formatters -------------------------------------------
 
+-- | Generic formatter for integer types
 genericIntFormat :: Integral a => VarFormat -> a -> B.Builder
 genericIntFormat Nothing x = formatInt def x
 genericIntFormat (Just fmtStr) x =
@@ -30,18 +36,21 @@ genericIntFormat (Just fmtStr) x =
       Left err -> error $ show err
       Right fmt -> formatInt fmt x
 
-instance Formatable Int where
-  format fmt x = genericIntFormat fmt x
-
-instance Formatable Integer where
-  format fmt x = genericIntFormat fmt x
-
+-- | Generic formatter for floating-point types
 genericFloatFormat :: RealFloat a => VarFormat -> a -> B.Builder
 genericFloatFormat Nothing x = formatFloat def x
 genericFloatFormat (Just fmtStr) x =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
       Right fmt -> formatFloat fmt x
+
+------------------------ Formatable instances -------------------------------------------
+
+instance Formatable Int where
+  format fmt x = genericIntFormat fmt x
+
+instance Formatable Integer where
+  format fmt x = genericIntFormat fmt x
 
 instance Formatable Float where
   format fmt x = genericFloatFormat fmt x
@@ -70,6 +79,7 @@ instance Formatable TL.Text where
       Left err -> error $ show err
       Right fmt -> formatStr fmt text
 
+-- | Container for single parameter.
 data Single a = Single {getSingle :: a}
   deriving (Eq, Show)
 
@@ -79,6 +89,13 @@ data Single a = Single {getSingle :: a}
 instance Formatable a => Formatable (Single a) where
   format fmt (Single x) = format fmt x
 
+-- | Values packed in Shown will be formatted using their Show instance.
+--
+-- For example,
+--
+-- @
+-- formatText "values: {}." (Shown (True, False)) ==> "values: (True, False)."
+-- @
 data Shown a = Shown { shown :: a }
   deriving (Eq)
 

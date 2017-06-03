@@ -1,5 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.Text.Format.Heavy.Parse where
+module Data.Text.Format.Heavy.Parse
+  (-- * Parse functions
+   parseGenericFormat,
+   parseFormat, parseFormat',
+   -- * Parsec functions
+   pFormat, pGenericFormat,
+   -- * Utility types
+   Parser, ParserState (..), initParserState
+  ) where
 
 import Data.Maybe
 import qualified Data.Text as T
@@ -58,7 +66,7 @@ parseFormat text = runParser pFormat initParserState "<format string>" text
 parseFormat' :: TL.Text -> Format
 parseFormat' text = either (error . show) id $ parseFormat text
 
-pGenericFormat :: Parser GenericFormat
+pGenericFormat :: Parsec TL.Text () GenericFormat
 pGenericFormat = do
     mbFillAlign <- optionMaybe (try pFillAlign <?> "fill and align specification")
     let fill = fromMaybe ' ' $ fst `fmap` mbFillAlign
@@ -80,7 +88,7 @@ pGenericFormat = do
              , gfRadix = mbRadix
              }
   where
-    pAlign :: Parser Align
+    pAlign :: Parsec TL.Text () Align
     pAlign = do
       alignChar <- oneOf "<>^"
       align <- case alignChar of
@@ -90,22 +98,22 @@ pGenericFormat = do
                  _ -> fail $ "Unexpected align char: " ++ [alignChar]
       return align
 
-    pAlignWithFill :: Parser (Char, Align)
+    pAlignWithFill :: Parsec TL.Text () (Char, Align)
     pAlignWithFill = do
       fill <- noneOf "<>=^"
       align <- pAlign
       return (fill, align)
 
-    pAlignWithoutFill :: Parser (Char, Align)
+    pAlignWithoutFill :: Parsec TL.Text () (Char, Align)
     pAlignWithoutFill = do
       align <- pAlign
       return (' ', align)
 
-    pFillAlign :: Parser (Char, Align)
+    pFillAlign :: Parsec TL.Text () (Char, Align)
     pFillAlign = do
       try pAlignWithoutFill <|> pAlignWithFill
 
-    pSign :: Parser Sign
+    pSign :: Parsec TL.Text () Sign
     pSign = do
       signChar <- oneOf "+- "
       sign <- case signChar of
@@ -115,27 +123,27 @@ pGenericFormat = do
                 _ -> fail $ "Unexpected sign char: " ++ [signChar]
       return sign
 
-    pLeading0x :: Parser Bool
+    pLeading0x :: Parsec TL.Text () Bool
     pLeading0x = do
       mbSharp <- optionMaybe $ char '#'
       case mbSharp of
         Nothing -> return False
         Just _ -> return True
 
-    natural :: Parser Int
+    natural :: Parsec TL.Text () Int
     natural = do
       ws <- many1 $ oneOf "0123456789"
       return $ read ws
 
-    pWidth :: Parser Int
+    pWidth :: Parsec TL.Text () Int
     pWidth = natural
 
-    pPrecision :: Parser Int
+    pPrecision :: Parsec TL.Text () Int
     pPrecision = do
       char '.'
       natural
     
-    pRadix :: Parser Radix
+    pRadix :: Parsec TL.Text () Radix
     pRadix = do
       rc <- oneOf "xhd"
       case rc of
@@ -144,5 +152,5 @@ pGenericFormat = do
         'd' -> return Decimal
 
 parseGenericFormat :: TL.Text -> Either ParseError GenericFormat
-parseGenericFormat text = runParser pGenericFormat initParserState "<variable format specification>" text
+parseGenericFormat text = runParser pGenericFormat () "<variable format specification>" text
 
