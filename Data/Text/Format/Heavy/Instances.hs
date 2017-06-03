@@ -23,33 +23,31 @@ instance IsVarFormat GenericFormat where
 
 ------------------------ Formatable instances -------------------------------------------
 
-instance Formatable Int where
-  format Nothing x = formatInt def x
-  format (Just fmtStr) x =
+genericIntFormat :: Integral a => VarFormat -> a -> B.Builder
+genericIntFormat Nothing x = formatInt def x
+genericIntFormat (Just fmtStr) x =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
       Right fmt -> formatInt fmt x
+
+instance Formatable Int where
+  format fmt x = genericIntFormat fmt x
 
 instance Formatable Integer where
-  format Nothing x = formatInt def x
-  format (Just fmtStr) x =
+  format fmt x = genericIntFormat fmt x
+
+genericFloatFormat :: RealFloat a => VarFormat -> a -> B.Builder
+genericFloatFormat Nothing x = formatFloat def x
+genericFloatFormat (Just fmtStr) x =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
-      Right fmt -> formatInt fmt x
+      Right fmt -> formatFloat fmt x
 
 instance Formatable Float where
-  format Nothing x = formatFloat def x
-  format (Just fmtStr) x =
-    case parseGenericFormat fmtStr of
-      Left err -> error $ show err
-      Right fmt -> formatFloat fmt x
+  format fmt x = genericFloatFormat fmt x
 
 instance Formatable Double where
-  format Nothing x = formatFloat def x
-  format (Just fmtStr) x =
-    case parseGenericFormat fmtStr of
-      Left err -> error $ show err
-      Right fmt -> formatFloat fmt x
+  format fmt x = genericFloatFormat fmt x
 
 instance Formatable String where
   format Nothing text = formatStr def (fromString text)
