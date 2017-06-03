@@ -25,23 +25,23 @@ genericTimeFormat (Just fmtStr) x =
 ------------------------ Formatable instances -------------------------------------------
 
 -- instance Formatable UniversalTime where
---   format fmt x = genericTimeFormat fmt x
+--   formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable Day where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable UTCTime where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable TimeZone where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable TimeOfDay where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable LocalTime where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 
 instance Formatable ZonedTime where
-  format fmt x = genericTimeFormat fmt x
+  formatVar fmt x = genericTimeFormat fmt x
 

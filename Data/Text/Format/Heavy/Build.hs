@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.Text.Format.Heavy.Build
-  (formatText,
+  (format,
    makeBuilder,
    -- * Formatters building utilities
    align, applySign, applySharp,
@@ -28,8 +28,8 @@ makeBuilder (Format items) vars = mconcat $ map go items
         Just var -> formatVar fmt var
 
 -- | The main formatting function.
-formatText :: VarContainer vars => Format -> vars -> TL.Text
-formatText fmt vars = B.toLazyText $ makeBuilder fmt vars
+format :: VarContainer vars => Format -> vars -> TL.Text
+format fmt vars = B.toLazyText $ makeBuilder fmt vars
 
 align' :: Int -> Align -> Char -> B.Builder -> B.Builder
 align' width AlignLeft fill text =

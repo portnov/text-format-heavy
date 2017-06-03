@@ -11,6 +11,6 @@ module Data.Text.Format.Heavy
   ) where
 
 import Data.Text.Format.Heavy.Types
-import Data.Text.Format.Heavy.Build (formatText)
+import Data.Text.Format.Heavy.Build (format)
 import Data.Text.Format.Heavy.Instances (Single (..), Shown (..))
 

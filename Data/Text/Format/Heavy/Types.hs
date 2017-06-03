@@ -36,17 +36,17 @@ instance IsVarFormat () where
 
 -- | Value that can be formatted to be substituted into format string.
 class Formatable a where
-  format :: VarFormat -> a -> B.Builder
+  formatVar :: VarFormat -> a -> B.Builder
 
 -- | Any variable that can be substituted.
 data Variable = forall a. Formatable a => Variable a
 
 instance Formatable Variable where
-  format fmt (Variable x) = format fmt x
+  formatVar fmt (Variable x) = formatVar fmt x
 
 -- | Format one variable according to format specification.
-formatVar :: VarFormat -> Variable -> B.Builder
-formatVar fmt (Variable v) = format fmt v
+formatAnyVar :: VarFormat -> Variable -> B.Builder
+formatAnyVar fmt (Variable v) = formatVar fmt v
 
 -- | Data structure that contains some number of variables.
 class VarContainer c where

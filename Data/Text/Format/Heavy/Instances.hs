@@ -47,34 +47,34 @@ genericFloatFormat (Just fmtStr) x =
 ------------------------ Formatable instances -------------------------------------------
 
 instance Formatable Int where
-  format fmt x = genericIntFormat fmt x
+  formatVar fmt x = genericIntFormat fmt x
 
 instance Formatable Integer where
-  format fmt x = genericIntFormat fmt x
+  formatVar fmt x = genericIntFormat fmt x
 
 instance Formatable Float where
-  format fmt x = genericFloatFormat fmt x
+  formatVar fmt x = genericFloatFormat fmt x
 
 instance Formatable Double where
-  format fmt x = genericFloatFormat fmt x
+  formatVar fmt x = genericFloatFormat fmt x
 
 instance Formatable String where
-  format Nothing text = formatStr def (fromString text)
-  format (Just fmtStr) text =
+  formatVar Nothing text = formatStr def (fromString text)
+  formatVar (Just fmtStr) text =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
       Right fmt -> formatStr fmt (fromString text)
 
 instance Formatable T.Text where
-  format Nothing text = formatStr def $ TL.fromStrict text
-  format (Just fmtStr) text =
+  formatVar Nothing text = formatStr def $ TL.fromStrict text
+  formatVar (Just fmtStr) text =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
       Right fmt -> formatStr fmt $ TL.fromStrict text
 
 instance Formatable TL.Text where
-  format Nothing text = formatStr def text
-  format (Just fmtStr) text =
+  formatVar Nothing text = formatStr def text
+  formatVar (Just fmtStr) text =
     case parseGenericFormat fmtStr of
       Left err -> error $ show err
       Right fmt -> formatStr fmt text
@@ -87,7 +87,7 @@ data Single a = Single {getSingle :: a}
 --   deriving (Eq, Show)
 
 instance Formatable a => Formatable (Single a) where
-  format fmt (Single x) = format fmt x
+  formatVar fmt (Single x) = formatVar fmt x
 
 -- | Values packed in Shown will be formatted using their Show instance.
 --
@@ -103,16 +103,16 @@ instance Show a => Show (Shown a) where
   show (Shown x) = show x
 
 instance Show a => Formatable (Shown a) where
-  format _ (Shown x) = B.fromLazyText $ TL.pack $ show x
+  formatVar _ (Shown x) = B.fromLazyText $ TL.pack $ show x
 
 instance Formatable a => Formatable (Maybe a) where
-  format Nothing Nothing = mempty
-  format (Just "") Nothing = mempty
-  format fmt (Just x) = format fmt x
+  formatVar Nothing Nothing = mempty
+  formatVar (Just "") Nothing = mempty
+  formatVar fmt (Just x) = formatVar fmt x
 
 instance (Formatable a, Formatable b) => Formatable (Either a b) where
-  format fmt (Left x) = format fmt x
-  format fmt (Right y) = format fmt y
+  formatVar fmt (Left x) = formatVar fmt x
+  formatVar fmt (Right y) = formatVar fmt y
 
 ------------------------------- VarContainer instances -------------------------------------
 
