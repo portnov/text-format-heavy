@@ -1,13 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.Text.Format.Heavy.Build
-  (format,
+  (format, formatEither,
    makeBuilder,
    -- * Formatters building utilities
    align, applySign, applySharp,
    formatInt, formatStr, formatFloat
   ) where
 
+import Control.Monad
 import Data.Monoid
 import Data.Maybe
 import qualified Data.Text as T
@@ -18,18 +19,25 @@ import Data.Text.Lazy.Builder.RealFloat
 
 import Data.Text.Format.Heavy.Types
 
-makeBuilder :: VarContainer c => Format -> c -> B.Builder
-makeBuilder (Format items) vars = mconcat $ map go items
+makeBuilder :: VarContainer c => Format -> c -> Either String B.Builder
+makeBuilder (Format items) vars = mconcat `fmap` mapM go items
   where
-    go (FString s) = B.fromLazyText s
+    go (FString s) = Right $ B.fromLazyText s
     go (FVariable name fmt) =
       case lookupVar name vars of
-        Nothing -> error $ "Parameter not found: " ++ TL.unpack name
+        Nothing -> Left $ "Parameter not found: " ++ TL.unpack name
         Just var -> formatVar fmt var
 
 -- | The main formatting function.
+-- This function throws @error@ if some error detected during format string parsing or formatting itself.
 format :: VarContainer vars => Format -> vars -> TL.Text
-format fmt vars = B.toLazyText $ makeBuilder fmt vars
+format fmt vars = either error id $ formatEither fmt vars
+
+-- | The main formatting function.
+-- This version returns @Left@ value with error description in case of error in 
+-- format string or error during formatting.
+formatEither :: VarContainer vars => Format -> vars -> Either String TL.Text
+formatEither fmt vars = either Left (Right . B.toLazyText) $ makeBuilder fmt vars
 
 align' :: Int -> Align -> Char -> B.Builder -> B.Builder
 align' width AlignLeft fill text =

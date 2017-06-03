@@ -17,10 +17,10 @@ import Data.Text.Format.Heavy.Parse
 import Data.Text.Format.Heavy.Build
 
 -- | Generic time formatter, using Data.Time.Format
-genericTimeFormat :: FormatTime t => VarFormat -> t -> B.Builder
-genericTimeFormat Nothing x = B.fromString $ formatTime defaultTimeLocale rfc822DateFormat x
+genericTimeFormat :: FormatTime t => VarFormat -> t -> Either String B.Builder
+genericTimeFormat Nothing x = Right $ B.fromString $ formatTime defaultTimeLocale rfc822DateFormat x
 genericTimeFormat (Just fmtStr) x =
-  B.fromString $ formatTime defaultTimeLocale (TL.unpack fmtStr) x
+  Right $ B.fromString $ formatTime defaultTimeLocale (TL.unpack fmtStr) x
 
 ------------------------ Formatable instances -------------------------------------------
 
