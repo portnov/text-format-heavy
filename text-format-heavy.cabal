@@ -29,7 +29,8 @@ maintainer:          portnov84@rambler.ru
 category:            Text
 build-type:          Simple
 extra-source-files:  ChangeLog.md,
-                     examples/test.hs
+                     examples/test.hs,
+                     examples/Benchmarks.hs
 cabal-version:       >=1.10
 
 library
