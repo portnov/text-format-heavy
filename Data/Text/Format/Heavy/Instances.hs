@@ -46,6 +46,15 @@ data Single a = Single {getSingle :: a}
 instance Formatable a => Formatable (Single a) where
   format fmt (Single x) = format fmt x
 
+data Shown a = Shown { shown :: a }
+  deriving (Eq)
+
+instance Show a => Show (Shown a) where
+  show (Shown x) = show x
+
+instance Show a => Formatable (Shown a) where
+  format _ (Shown x) = B.fromLazyText $ TL.pack $ show x
+
 instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
   lookupVar _ _ = Nothing
