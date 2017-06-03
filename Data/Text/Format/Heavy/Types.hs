@@ -6,11 +6,11 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
 
-type VarName = T.Text
-type VarFormat = Maybe T.Text
+type VarName = TL.Text
+type VarFormat = Maybe TL.Text
 
 data FormatItem =
-    FString T.Text
+    FString TL.Text
   | FVariable {
       vName :: VarName
     , vFormat :: VarFormat

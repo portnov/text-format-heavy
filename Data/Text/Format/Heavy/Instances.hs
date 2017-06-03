@@ -20,13 +20,13 @@ instance Formatable Int where
   format Nothing x = decimal x
   format (Just "x") x = hexadecimal x
   format (Just "h") x = hexadecimal x
-  format (Just fmt) _ = error $ "Unknown integer format: " ++ T.unpack fmt
+  format (Just fmt) _ = error $ "Unknown integer format: " ++ TL.unpack fmt
 
 instance Formatable Integer where
   format Nothing x = decimal x
   format (Just "x") x = hexadecimal x
   format (Just "h") x = hexadecimal x
-  format (Just fmt) _ = error $ "Unknown integer format: " ++ T.unpack fmt
+  format (Just fmt) _ = error $ "Unknown integer format: " ++ TL.unpack fmt
 
 instance Formatable String where
   format _ str = B.fromText $ T.pack str
@@ -70,16 +70,16 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d) => VarContaine
 
 instance Formatable a => VarContainer [a] where
   lookupVar name lst =
-    if not $ T.all isDigit name
+    if not $ TL.all isDigit name
       then Nothing
-      else let n = read (T.unpack name)
+      else let n = read (TL.unpack name)
            in  if n >= length lst
                then Nothing
                else Just $ Variable (lst !! n)
   
-instance Formatable x => VarContainer [(T.Text, x)] where
+instance Formatable x => VarContainer [(TL.Text, x)] where
   lookupVar name pairs = Variable `fmap` lookup name pairs
 
-instance Formatable x => VarContainer (M.Map T.Text x) where
+instance Formatable x => VarContainer (M.Map TL.Text x) where
   lookupVar name pairs = Variable `fmap` M.lookup name pairs
 

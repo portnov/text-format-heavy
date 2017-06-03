@@ -16,7 +16,7 @@ data ParserState = ParserState {
 initParserState :: ParserState
 initParserState = ParserState 0
 
-type Parser a = Parsec T.Text ParserState a
+type Parser a = Parsec TL.Text ParserState a
 
 -- TODO: proper handling of escaping
 anyChar' :: Parser Char
@@ -24,12 +24,12 @@ anyChar' =
   noneOf "{}" <|> try ('{' <$ string "\\{") <|> try ('}' <$ string "\\}")
 
 pVerbatim :: Parser FormatItem
-pVerbatim = (FString . T.pack) `fmap` many1 anyChar'
+pVerbatim = (FString . TL.pack) `fmap` many1 anyChar'
 
 pVariable :: Parser FormatItem
 pVariable = do
     (name, fmt) <- between (char '{') (char '}') variable
-    return $ FVariable (T.pack name) fmt
+    return $ FVariable (TL.pack name) fmt
   where
     variable = do
       name <- many alphaNum
@@ -38,7 +38,7 @@ pVariable = do
                Nothing -> return Nothing
                Just _ -> do
                   fmtStr <- many anyChar'
-                  return $ Just $ T.pack fmtStr
+                  return $ Just $ TL.pack fmtStr
       name' <- if null name
                  then do
                       st <- getState
@@ -51,9 +51,9 @@ pVariable = do
 pFormat :: Parser Format
 pFormat = Format `fmap` many (try pVariable <|> pVerbatim)
 
-parseFormat :: T.Text -> Either ParseError Format
+parseFormat :: TL.Text -> Either ParseError Format
 parseFormat text = runParser pFormat initParserState "<format string>" text
 
-parseFormat' :: T.Text -> Format
+parseFormat' :: TL.Text -> Format
 parseFormat' text = either (error . show) id $ parseFormat text
 
