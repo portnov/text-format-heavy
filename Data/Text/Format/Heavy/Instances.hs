@@ -60,6 +60,10 @@ instance Formatable a => Formatable (Maybe a) where
   format (Just "") Nothing = mempty
   format fmt (Just x) = format fmt x
 
+instance (Formatable a, Formatable b) => Formatable (Either a b) where
+  format fmt (Left x) = format fmt x
+  format fmt (Right y) = format fmt y
+
 instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
   lookupVar _ _ = Nothing
@@ -89,6 +93,16 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e)
   lookupVar "2" (_,_,c,_,_) = Just $ Variable c
   lookupVar "3" (_,_,_,d,_) = Just $ Variable d
   lookupVar "4" (_,_,_,_,e) = Just $ Variable e
+  lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f)
+     => VarContainer (a, b, c, d, e, f) where
+  lookupVar "0" (a,_,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e,_) = Just $ Variable e
+  lookupVar "5" (_,_,_,_,_,f) = Just $ Variable f
   lookupVar _ _ = Nothing
 
 instance Formatable a => VarContainer [a] where
