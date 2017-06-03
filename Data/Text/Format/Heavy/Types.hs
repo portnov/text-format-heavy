@@ -48,7 +48,7 @@ formatVar fmt (Variable v) = format fmt v
 class VarContainer c where
   lookupVar :: VarName -> c -> Maybe Variable
 
-data Align = AlignLeft | AlignRight
+data Align = AlignLeft | AlignRight | AlignCenter
   deriving (Eq, Show)
 
 data Sign = Always | OnlyNegative | SpaceForPositive

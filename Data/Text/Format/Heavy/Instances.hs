@@ -4,6 +4,7 @@ module Data.Text.Format.Heavy.Instances where
 
 import Data.String
 import Data.Char
+import Data.Default
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -12,32 +13,64 @@ import Data.Text.Lazy.Builder.Int (decimal, hexadecimal)
 
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Parse
+import Data.Text.Format.Heavy.Build
 
 instance IsString Format where
   fromString str = parseFormat' (fromString str)
 
+instance IsVarFormat GenericFormat where
+  parseVarFormat text = either (Left . show) Right $ parseGenericFormat text
+
 ------------------------ Formatable instances -------------------------------------------
 
 instance Formatable Int where
-  format Nothing x = decimal x
-  format (Just "x") x = hexadecimal x
-  format (Just "h") x = hexadecimal x
-  format (Just fmt) _ = error $ "Unknown integer format: " ++ TL.unpack fmt
+  format Nothing x = formatInt def x
+  format (Just fmtStr) x =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatInt fmt x
 
 instance Formatable Integer where
-  format Nothing x = decimal x
-  format (Just "x") x = hexadecimal x
-  format (Just "h") x = hexadecimal x
-  format (Just fmt) _ = error $ "Unknown integer format: " ++ TL.unpack fmt
+  format Nothing x = formatInt def x
+  format (Just fmtStr) x =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatInt fmt x
+
+instance Formatable Float where
+  format Nothing x = formatFloat def x
+  format (Just fmtStr) x =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatFloat fmt x
+
+instance Formatable Double where
+  format Nothing x = formatFloat def x
+  format (Just fmtStr) x =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatFloat fmt x
 
 instance Formatable String where
-  format _ str = B.fromText $ T.pack str
+  format Nothing text = formatStr def (fromString text)
+  format (Just fmtStr) text =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatStr fmt (fromString text)
 
 instance Formatable T.Text where
-  format _ text = B.fromText text
+  format Nothing text = formatStr def $ TL.fromStrict text
+  format (Just fmtStr) text =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatStr fmt $ TL.fromStrict text
 
 instance Formatable TL.Text where
-  format _ text = B.fromLazyText text
+  format Nothing text = formatStr def text
+  format (Just fmtStr) text =
+    case parseGenericFormat fmtStr of
+      Left err -> error $ show err
+      Right fmt -> formatStr fmt text
 
 data Single a = Single {getSingle :: a}
   deriving (Eq, Show)

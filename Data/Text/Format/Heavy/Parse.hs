@@ -82,10 +82,11 @@ pGenericFormat = do
   where
     pAlign :: Parser Align
     pAlign = do
-      alignChar <- oneOf "<>"
+      alignChar <- oneOf "<>^"
       align <- case alignChar of
                  '<' -> return AlignLeft
                  '>' -> return AlignRight
+                 '^' -> return AlignCenter
                  _ -> fail $ "Unexpected align char: " ++ [alignChar]
       return align
 
