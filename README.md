@@ -42,6 +42,8 @@ variable types includes:
  * Strings (`String`, lazy and strict `Text`);
  * Booleans;
  * Time/date values from Data.Time.
+ * Any instance of `Show` type class can be used by packing it into `Shown`
+   constructor.
 
 One can implement custom variable types.
 
