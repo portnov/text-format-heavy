@@ -169,9 +169,27 @@ pGenericFormat = do
         'd' -> return Decimal
 
 -- | Parse generic variable format.
+--
+-- Syntax is:
+--
+-- @
+-- [[fill]align][sign][#][width][.precision][radix]
+-- @
+--
+-- where:
+--
+-- * fill - padding character (space by default)
+-- * align - alignment indicator (@<@, @>@, or @^@)
+-- * sign - when to show number's sign (@+@, @-@, or space)
+-- * @#@ - if specified, then for hexadecimal numbers the leading @0x@ will be added
+-- * width - minimum length of the field
+-- * precision - number of decimal places after point, for floatting-point numbers
+-- * radix - @h@ or @x@ for hexadecimal, @d@ for decimal (default).
+--
 parseGenericFormat :: TL.Text -> Either ParseError GenericFormat
 parseGenericFormat text = runParser pGenericFormat () "<variable format specification>" text
 
+-- | Parsec parser for Bool format
 pBoolFormat :: Parsec TL.Text st BoolFormat
 pBoolFormat = do
   true <- many $ noneOf ":,;"
@@ -179,6 +197,19 @@ pBoolFormat = do
   false <- many $ anyChar
   return $ BoolFormat (TL.pack true) (TL.pack false)
 
+-- | Parse Bool format.
+--
+-- Syntax is:
+--
+-- @
+-- TRUE:FALSE
+-- @
+--
+-- Colon can be replaced with comma or semicolon.
+--
+-- For example, valid format specifications are @true:false@ (the default one),
+-- @True:False@, @yes:no@, and so on.
+--
 parseBoolFormat :: TL.Text -> Either ParseError BoolFormat
 parseBoolFormat text = runParser pBoolFormat () "<boolean format specification>" text
 

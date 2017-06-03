@@ -76,7 +76,7 @@ applySharp False _ text = text
 applySharp True Decimal text = text
 applySharp True Hexadecimal text = B.fromLazyText "0x" <> text
 
--- | Format integer number according to Genericformat
+-- | Format integer number according to GenericFormat
 formatInt :: Integral a => GenericFormat -> a -> B.Builder
 formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x fmt) radix $ inRadix
   where
@@ -85,15 +85,16 @@ formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x
                Decimal -> decimal (abs x)
                Hexadecimal -> hexadecimal (abs x)
 
--- | Format floating-point number according to Genericformat
+-- | Format floating-point number according to GenericFormat
 formatFloat :: RealFloat a => GenericFormat -> a -> B.Builder
 formatFloat fmt x =
   align fmt $ applySign (gfSign fmt) x $ formatRealFloat Fixed (gfPrecision fmt) $ abs x
 
--- | Format Text according to Genericformat.
+-- | Format Text according to GenericFormat.
 formatStr :: GenericFormat -> TL.Text -> B.Builder
 formatStr fmt text = align fmt $ B.fromLazyText text
 
+-- | Format boolean value.
 formatBool :: BoolFormat -> Bool -> B.Builder
 formatBool fmt True = B.fromLazyText $ bfTrue fmt
 formatBool fmt False = B.fromLazyText $ bfFalse fmt
