@@ -28,6 +28,7 @@ makeBuilder (Format items) vars = mconcat `fmap` mapM go items
       case lookupVar name vars of
         Nothing -> Left $ "Parameter not found: " ++ TL.unpack name
         Just var -> formatVar fmt var
+{-# INLINE makeBuilder #-}
 
 -- | The main formatting function.
 -- This function throws @error@ if some error detected during format string parsing or formatting itself.
