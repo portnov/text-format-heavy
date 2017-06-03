@@ -18,6 +18,7 @@ import Data.Text.Lazy.Builder.Int (decimal, hexadecimal)
 import Data.Text.Lazy.Builder.RealFloat
 
 import Data.Text.Format.Heavy.Types
+import Data.Text.Format.Heavy.Formats
 
 makeBuilder :: VarContainer c => Format -> c -> Either String B.Builder
 makeBuilder (Format items) vars = mconcat `fmap` mapM go items

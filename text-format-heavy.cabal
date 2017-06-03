@@ -20,6 +20,7 @@ library
                        Data.Text.Format.Heavy.Parse,
                        Data.Text.Format.Heavy.Build,
                        Data.Text.Format.Heavy.Types,
+                       Data.Text.Format.Heavy.Formats,
                        Data.Text.Format.Heavy.Instances,
                        Data.Text.Format.Heavy.Time
   -- other-modules:       

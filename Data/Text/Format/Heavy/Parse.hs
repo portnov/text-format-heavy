@@ -28,6 +28,7 @@ import qualified Data.Text.Lazy.Builder as B
 import Text.Parsec
 
 import Data.Text.Format.Heavy.Types
+import Data.Text.Format.Heavy.Formats
 
 data ParserState = ParserState {
     psNextIndex :: Int

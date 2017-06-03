@@ -17,6 +17,7 @@ import qualified Data.Text.Lazy.Builder as B
 import Data.Text.Lazy.Builder.Int (decimal, hexadecimal)
 
 import Data.Text.Format.Heavy.Types
+import Data.Text.Format.Heavy.Formats
 import Data.Text.Format.Heavy.Parse
 import Data.Text.Format.Heavy.Build
 
