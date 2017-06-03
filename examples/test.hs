@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Data.Time
 import qualified Data.Text.Lazy.IO as TLIO
 import Data.Text.Format.Heavy
+import Data.Text.Format.Heavy.Time
 
 main :: IO ()
 main = do
@@ -10,6 +12,7 @@ main = do
       rt = (Right 7) :: Either String Int
       xs = (18 :: Int, "hello" :: String, 2.718281828 :: Double, Shown (Just (7 :: Int)), Just (8 :: Int), rt)
   TLIO.putStrLn $ format template xs
-  TLIO.putStrLn $ format "Hello, {}!" $ Single ("Ilya" :: String)
+  time <- getZonedTime
+  TLIO.putStrLn $ format "Hello, {}! It is {:%H:%M:%S} now." $ ("Ilya" :: String, time)
   
 
