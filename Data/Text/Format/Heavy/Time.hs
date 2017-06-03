@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances, UndecidableInstances #-}
 -- | This module contains Formatable instances for time/date values,
 -- which use Data.Time.Format notation for formats (like @%H:%M@).
+-- Default date/time format is RFC 822.
+--
+-- This module is not re-exported by Data.Text.Format.Heavy by default,
+-- because it defines only one of possible time formatting strings syntaxes.
+-- One may like other syntax for some reason; if we re-exported this module by
+-- default, it would be impossible to hide these instances to implement other.
+--
 module Data.Text.Format.Heavy.Time where
 
 import Data.String

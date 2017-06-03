@@ -1,8 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- | This module contains parsers for formatting strings.
+-- We have to deal with two kinds of strings:
+--
+-- * String formats. This is the whole construct like @"Hello, {}! Your account balance is {1:+8.4}."@.
+-- * Variable formats. This is only part after colon in braces, i.e. the @+8.4@ thing in previous example.
+--
+-- The string format syntax is supposed to be very stable and simple. It is basically defined by phrase
+-- "any part in braces is variable substitution".
+--
+-- Variable formats syntax depends on type of data which we are going to format. These formats can be
+-- pretty complex, for example they can include alignment, rounding, and so on.
+--
 module Data.Text.Format.Heavy.Parse
   (-- * Parse functions
-   parseGenericFormat,
    parseFormat, parseFormat',
+   parseGenericFormat,
    -- * Parsec functions
    pFormat, pGenericFormat,
    -- * Utility types
@@ -57,16 +69,20 @@ pVariable = do
                  else return name
       return (name', fmt)
 
+-- | Parsec parser for string format.
 pFormat :: Parser Format
 pFormat = Format `fmap` many (try pVariable <|> pVerbatim)
 
+-- | Parse string format definition.
 parseFormat :: TL.Text -> Either ParseError Format
 parseFormat text = runParser pFormat initParserState "<format string>" text
 
+-- | Version of parseFormat which throws @error@ in case of syntax error in the formatting string.
 parseFormat' :: TL.Text -> Format
 parseFormat' text = either (error . show) id $ parseFormat text
 
-pGenericFormat :: Parsec TL.Text () GenericFormat
+-- | Parsec parser for generic (Python-like) variable format.
+pGenericFormat :: Parsec TL.Text st GenericFormat
 pGenericFormat = do
     mbFillAlign <- optionMaybe (try pFillAlign <?> "fill and align specification")
     let fill = fromMaybe ' ' $ fst `fmap` mbFillAlign
@@ -88,7 +104,7 @@ pGenericFormat = do
              , gfRadix = mbRadix
              }
   where
-    pAlign :: Parsec TL.Text () Align
+    pAlign :: Parsec TL.Text st Align
     pAlign = do
       alignChar <- oneOf "<>^"
       align <- case alignChar of
@@ -98,22 +114,22 @@ pGenericFormat = do
                  _ -> fail $ "Unexpected align char: " ++ [alignChar]
       return align
 
-    pAlignWithFill :: Parsec TL.Text () (Char, Align)
+    pAlignWithFill :: Parsec TL.Text st (Char, Align)
     pAlignWithFill = do
       fill <- noneOf "<>=^"
       align <- pAlign
       return (fill, align)
 
-    pAlignWithoutFill :: Parsec TL.Text () (Char, Align)
+    pAlignWithoutFill :: Parsec TL.Text st (Char, Align)
     pAlignWithoutFill = do
       align <- pAlign
       return (' ', align)
 
-    pFillAlign :: Parsec TL.Text () (Char, Align)
+    pFillAlign :: Parsec TL.Text st (Char, Align)
     pFillAlign = do
       try pAlignWithoutFill <|> pAlignWithFill
 
-    pSign :: Parsec TL.Text () Sign
+    pSign :: Parsec TL.Text st Sign
     pSign = do
       signChar <- oneOf "+- "
       sign <- case signChar of
@@ -123,27 +139,27 @@ pGenericFormat = do
                 _ -> fail $ "Unexpected sign char: " ++ [signChar]
       return sign
 
-    pLeading0x :: Parsec TL.Text () Bool
+    pLeading0x :: Parsec TL.Text st Bool
     pLeading0x = do
       mbSharp <- optionMaybe $ char '#'
       case mbSharp of
         Nothing -> return False
         Just _ -> return True
 
-    natural :: Parsec TL.Text () Int
+    natural :: Parsec TL.Text st Int
     natural = do
       ws <- many1 $ oneOf "0123456789"
       return $ read ws
 
-    pWidth :: Parsec TL.Text () Int
+    pWidth :: Parsec TL.Text st Int
     pWidth = natural
 
-    pPrecision :: Parsec TL.Text () Int
+    pPrecision :: Parsec TL.Text st Int
     pPrecision = do
       char '.'
       natural
     
-    pRadix :: Parsec TL.Text () Radix
+    pRadix :: Parsec TL.Text st Radix
     pRadix = do
       rc <- oneOf "xhd"
       case rc of
@@ -151,6 +167,7 @@ pGenericFormat = do
         'h' -> return Hexadecimal
         'd' -> return Decimal
 
+-- | Parse generic variable format.
 parseGenericFormat :: TL.Text -> Either ParseError GenericFormat
 parseGenericFormat text = runParser pGenericFormat () "<variable format specification>" text
 

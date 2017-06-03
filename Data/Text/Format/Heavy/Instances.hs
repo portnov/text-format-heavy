@@ -80,6 +80,11 @@ instance Formatable TL.Text where
       Right fmt -> Right $ formatStr fmt text
 
 -- | Container for single parameter.
+-- Example usage:
+--
+-- @
+-- format "Hello, {}!" (Single name)
+-- @
 data Single a = Single {getSingle :: a}
   deriving (Eq, Show)
 

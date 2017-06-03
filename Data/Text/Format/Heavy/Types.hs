@@ -28,6 +28,7 @@ data Format = Format [FormatItem]
 
 -- | Can be used for different data types describing formats of specific types.
 class (Default f, Show f) => IsVarFormat f where
+  -- | Left for errors.
   parseVarFormat :: TL.Text -> Either String f
 
 instance IsVarFormat () where
@@ -36,9 +37,15 @@ instance IsVarFormat () where
 
 -- | Value that can be formatted to be substituted into format string.
 class Formatable a where
-  formatVar :: VarFormat -> a -> Either String B.Builder
+  -- | Format variable according to format specification.
+  -- This function should usually parse format specification by itself.
+  formatVar :: VarFormat                -- ^ Variable format specification in text form. Nothing is for default format.
+            -> a                        -- ^ Variable value.
+            -> Either String B.Builder  -- ^ Left for errors in variable format syntax, or errors during formatting.
 
 -- | Any variable that can be substituted.
+-- This type may be also used to construct heterogeneous lists:
+-- @[Variable 1, Variable "x"] :: [Variable]@.
 data Variable = forall a. Formatable a => Variable a
 
 instance Formatable Variable where
