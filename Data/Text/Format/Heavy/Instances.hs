@@ -29,7 +29,8 @@ instance IsString Format where
 instance IsVarFormat GenericFormat where
   parseVarFormat text = either (Left . show) Right $ parseGenericFormat text
 
-
+instance IsVarFormat BoolFormat where
+  parseVarFormat text = either (Left . show) Right $ parseBoolFormat text
 
 ---------------------- Generic formatters -------------------------------------------
 
