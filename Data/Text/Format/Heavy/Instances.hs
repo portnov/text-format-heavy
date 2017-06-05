@@ -2,7 +2,7 @@
 -- | This module contains Formatable and VarContainer instances for most used types.
 module Data.Text.Format.Heavy.Instances
   (-- * Utility data types
-   Single (..), Shown (..),
+   Single (..), Several (..), Shown (..),
    -- * Generic formatters
    genericIntFormat, genericFloatFormat
   ) where
@@ -108,6 +108,15 @@ data Single a = Single {getSingle :: a}
 instance Formatable a => Formatable (Single a) where
   formatVar fmt (Single x) = formatVar fmt x
 
+-- | Container for several parameters of the same type.
+-- Example usage:
+--
+-- @
+-- format "{} + {} = {}" $ Several [2, 3, 5]
+-- @
+data Several a = Several {getSeveral :: [a]}
+  deriving (Eq, Show)
+
 -- | Values packed in Shown will be formatted using their Show instance.
 --
 -- For example,
@@ -204,8 +213,8 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "6" (_,_,_,_,_,_,g) = Just $ Variable g
   lookupVar _ _ = Nothing
 
-instance Formatable a => VarContainer [a] where
-  lookupVar name lst =
+instance Formatable a => VarContainer (Several a) where
+  lookupVar name (Several lst) =
     if not $ TL.all isDigit name
       then Nothing
       else let n = read (TL.unpack name)
