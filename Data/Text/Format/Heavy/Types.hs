@@ -3,6 +3,7 @@
 module Data.Text.Format.Heavy.Types where
 
 import Data.Default
+import Data.Monoid
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
@@ -25,6 +26,10 @@ data FormatItem =
 -- | String format
 data Format = Format [FormatItem]
   deriving (Show)
+
+instance Monoid Format where
+  mempty = Format []
+  mappend (Format xs) (Format ys) = Format (xs ++ ys)
 
 -- | Can be used for different data types describing formats of specific types.
 class (Default f, Show f) => IsVarFormat f where
