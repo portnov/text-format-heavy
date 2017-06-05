@@ -52,6 +52,10 @@ genericFloatFormat (Just fmtStr) x =
 
 ------------------------ Formatable instances -------------------------------------------
 
+-- | Unit type is formatted as empty string
+instance Formatable () where
+  formatVar _ _ = Right mempty
+
 instance Formatable Int where
   formatVar fmt x = genericIntFormat fmt x
 
