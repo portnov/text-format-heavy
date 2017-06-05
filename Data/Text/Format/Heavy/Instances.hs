@@ -126,7 +126,16 @@ instance Show a => Formatable (Shown a) where
 
 instance Formatable a => Formatable (Maybe a) where
   formatVar Nothing Nothing = Right mempty
-  formatVar fmt (Just x) = formatVar fmt x
+  formatVar Nothing (Just x) = formatVar Nothing x
+  formatVar (Just fmtStr) m =
+    case parseMaybeFormat fmtStr of
+      Nothing -> case m of
+                   Nothing -> Right mempty
+                   Just x -> formatVar (Just fmtStr) x
+      Just (xFmtStr, nothingStr) ->
+                 case m of
+                   Nothing -> Right $ B.fromLazyText nothingStr
+                   Just x -> formatVar (Just xFmtStr) x
 
 instance (Formatable a, Formatable b) => Formatable (Either a b) where
   formatVar fmt (Left x) = formatVar fmt x
@@ -139,6 +148,12 @@ instance Formatable a => VarContainer (Single a) where
   lookupVar _ _ = Nothing
 
 instance VarContainer () where
+  lookupVar _ _ = Nothing
+
+-- | Maybe container contains one variable (named 0); Nothing contains an empty string.
+instance Formatable a => VarContainer (Maybe a) where
+  lookupVar "0" (Just x) = Just $ Variable x
+  lookupVar "0" Nothing = Just $ Variable ()
   lookupVar _ _ = Nothing
 
 instance (Formatable a, Formatable b) => VarContainer (a, b) where

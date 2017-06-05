@@ -14,5 +14,9 @@ main = do
   TLIO.putStrLn $ format template xs
   time <- getZonedTime
   TLIO.putStrLn $ format "Hello, {}! It is {:%H:%M:%S} now." $ ("Ilya" :: String, time)
+  let mbX = Nothing :: Maybe Float
+      mbY = Just 7.37491 :: Maybe Float
+      mbZ = Nothing :: Maybe Float
+  TLIO.putStrLn $ format "Maybe X: {:+8.4|<not defined>}, Maybe Y: {:+8.4|<not defined>}, Maybe Z: {:+8.4}." (mbX, mbY, mbZ)
   
 

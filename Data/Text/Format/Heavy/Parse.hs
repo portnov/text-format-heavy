@@ -15,6 +15,7 @@ module Data.Text.Format.Heavy.Parse
   (-- * Parse functions
    parseFormat, parseFormat',
    parseGenericFormat, parseBoolFormat,
+   parseMaybeFormat,
    -- * Parsec functions
    pFormat, pGenericFormat, pBoolFormat,
    -- * Utility types
@@ -212,4 +213,24 @@ pBoolFormat = do
 --
 parseBoolFormat :: TL.Text -> Either ParseError BoolFormat
 parseBoolFormat text = runParser pBoolFormat () "<boolean format specification>" text
+
+-- | Try to parse format for @Maybe x@ type.
+-- The syntax is:
+--
+-- @
+-- someformat|nothing
+-- @
+--
+-- where @someformat@ is format for the @x@ type, and @nothing@ is the string
+-- to be substituted for @Nothing@ value.
+--
+-- Returns Nothing, if format does not contain @|@. Otherwise, returns
+-- @Just (someformat, nothing)@.
+--
+parseMaybeFormat :: TL.Text -> Maybe (TL.Text, TL.Text)
+parseMaybeFormat text =
+  let (xFmtStr, nothingStr) = TL.breakOnEnd "|" text
+  in  if TL.null xFmtStr
+        then Nothing
+        else Just (TL.init xFmtStr, nothingStr)
 
