@@ -20,6 +20,17 @@ Formatting strings are present by `Format` type. Values of this type can be
 parsed from lazy Text, or can be entered as string literals, since `Format`
 implements `IsString`.
 
+There are two syntaxes of formatting strings defined by this package:
+
+* Default Python-like syntax, which is generally described as "anything in
+  braces is a variable substitution". `instance IsString Format` uses this
+  syntax.
+* Alternative Shell-like syntax, which is generally described as "anything
+  after dollar sign is a variable substitution".
+
+It is possible to implement custom syntaxes of format strings: you just need to
+parse instances of `Format` type from some sort of strings.
+
 The `format` function takes a `Format` specification and a container with
 variables. Container types are generalized by `VarContainer` type class.
 Standard container implementations include:
@@ -37,9 +48,9 @@ rules, and a syntax of variable format specification. For example, for
 integers, floats and strings, python-like syntax is used. Standard set of
 variable types includes:
 
- * Integers (`Int` and `Integer`, others can be easily added);
+ * Integers (`Int`, `Integer`, `Int8..64`, `Word8..64`, others can be easily added);
  * Floats (`Float` and `Double`);
- * Strings (`String`, lazy and strict `Text`);
+ * Strings (`String`, lazy and strict `ByteString`, lazy and strict `Text`);
  * Booleans;
  * Time/date values from Data.Time.
  * Any instance of `Show` type class can be used by packing it into `Shown`
@@ -47,9 +58,10 @@ variable types includes:
 
 One can implement custom variable types.
 
-For examples, please refer to [GitHub
-wiki](https://github.com/portnov/text-format-heavy/wiki) and `examples/`
+For examples, please refer to [GitHub wiki][1] and `examples/`
 directory in this repo. There are also some examples in haddock documentation.
 
 License: BSD3.
+
+[1]: https://github.com/portnov/text-format-heavy/wiki
 
