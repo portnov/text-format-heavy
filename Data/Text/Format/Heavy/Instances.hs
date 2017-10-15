@@ -10,6 +10,8 @@ module Data.Text.Format.Heavy.Instances
 import Data.String
 import Data.Char
 import Data.Default
+import Data.Word
+import Data.Int
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -61,6 +63,30 @@ instance Formatable () where
   formatVar _ _ = Right mempty
 
 instance Formatable Int where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Int8 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Int16 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Int32 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Int64 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Word8 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Word16 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Word32 where
+  formatVar fmt x = genericIntFormat fmt x
+
+instance Formatable Word64 where
   formatVar fmt x = genericIntFormat fmt x
 
 instance Formatable Integer where
