@@ -12,7 +12,11 @@ import Data.Char
 import Data.Default
 import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Text.Lazy.Builder as B
 import Data.Text.Lazy.Builder.Int (decimal, hexadecimal)
 
@@ -88,6 +92,20 @@ instance Formatable TL.Text where
     case parseGenericFormat fmtStr of
       Left err -> Left $ show err
       Right fmt -> Right $ formatStr fmt text
+
+instance Formatable BS.ByteString where
+  formatVar Nothing text = Right $ formatStr def $ TL.fromStrict $ TE.decodeUtf8 text
+  formatVar (Just fmtStr) text =
+    case parseGenericFormat fmtStr of
+      Left err -> Left $ show err
+      Right fmt -> Right $ formatStr fmt $ TL.fromStrict $ TE.decodeUtf8 text
+
+instance Formatable BSL.ByteString where
+  formatVar Nothing text = Right $ formatStr def $ TLE.decodeUtf8 text
+  formatVar (Just fmtStr) text =
+    case parseGenericFormat fmtStr of
+      Left err -> Left $ show err
+      Right fmt -> Right $ formatStr fmt $ TLE.decodeUtf8 text
 
 instance Formatable Bool where
   formatVar Nothing x = Right $ formatBool def x
