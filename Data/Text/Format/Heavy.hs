@@ -38,5 +38,5 @@ module Data.Text.Format.Heavy
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Formats
 import Data.Text.Format.Heavy.Build (format)
-import Data.Text.Format.Heavy.Instances (Single (..), Shown (..))
+import Data.Text.Format.Heavy.Instances hiding (genericIntFormat, genericFloatFormat)
 
