@@ -3,6 +3,9 @@
 module Data.Text.Format.Heavy.Instances
   (-- * Utility data types
    Single (..), Several (..), Shown (..),
+   -- * Combinators
+   DefaultValue (..), ThenCheck (..),
+   withDefault, optional,
    -- * Generic formatters
    genericIntFormat, genericFloatFormat
   ) where
@@ -12,6 +15,7 @@ import Data.Char
 import Data.Default
 import Data.Word
 import Data.Int
+import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -271,4 +275,26 @@ instance Formatable x => VarContainer [(TL.Text, x)] where
 
 instance Formatable x => VarContainer (M.Map TL.Text x) where
   lookupVar name pairs = Variable `fmap` M.lookup name pairs
+
+-- | Variable container which contains fixed value for any variable name.
+data DefaultValue = DefaultValue Variable
+
+instance VarContainer DefaultValue where
+  lookupVar _ (DefaultValue var) = Just var
+
+-- | Combiled variable container, which uses parameters from @c1@,
+-- and if variable is not found there it will check in @c2@.
+data ThenCheck c1 c2 = ThenCheck c1 c2
+
+instance (VarContainer c1, VarContainer c2) => VarContainer (ThenCheck c1 c2) where
+  lookupVar name (ThenCheck c1 c2) =
+    case lookupVar name c1 of
+      Just result -> Just result
+      Nothing -> lookupVar name c2
+
+withDefault :: VarContainer c => c -> Variable -> ThenCheck c DefaultValue
+withDefault c value = c `ThenCheck` DefaultValue value
+
+optional :: VarContainer c => c -> ThenCheck c DefaultValue
+optional c = c `withDefault` (Variable TL.empty)
 
