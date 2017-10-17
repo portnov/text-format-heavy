@@ -4,7 +4,7 @@ module Data.Text.Format.Heavy.Instances
   (-- * Utility data types
    Single (..), Several (..), Shown (..),
    -- * Combinators
-   DefaultValue (..), ThenCheck (..),
+   DefaultValue (..), ThenCheck (..), WithDefault,
    withDefault, optional,
    -- * Generic formatters
    genericIntFormat, genericFloatFormat
@@ -286,15 +286,22 @@ instance VarContainer DefaultValue where
 -- and if variable is not found there it will check in @c2@.
 data ThenCheck c1 c2 = ThenCheck c1 c2
 
+-- | Convenience type synonym.
+type WithDefault c = ThenCheck c DefaultValue
+
 instance (VarContainer c1, VarContainer c2) => VarContainer (ThenCheck c1 c2) where
   lookupVar name (ThenCheck c1 c2) =
     case lookupVar name c1 of
       Just result -> Just result
       Nothing -> lookupVar name c2
 
-withDefault :: VarContainer c => c -> Variable -> ThenCheck c DefaultValue
+-- | Use variables from specified container, or use default value if
+-- variable is not found in container.
+withDefault :: VarContainer c => c -> Variable -> WithDefault c
 withDefault c value = c `ThenCheck` DefaultValue value
 
-optional :: VarContainer c => c -> ThenCheck c DefaultValue
+-- | Use variables from specified container, or use empty string
+-- variable is not found in container.
+optional :: VarContainer c => c -> WithDefault c
 optional c = c `withDefault` (Variable TL.empty)
 
