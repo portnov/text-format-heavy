@@ -53,6 +53,12 @@ class Formatable a where
 -- @[Variable 1, Variable "x"] :: [Variable]@.
 data Variable = forall a. Formatable a => Variable a
 
+instance Show Variable where
+  show (Variable v) = either error toString $ formatVar Nothing v
+    where
+      toString :: B.Builder -> String
+      toString b = TL.unpack $ B.toLazyText b
+
 instance Formatable Variable where
   formatVar fmt (Variable x) = formatVar fmt x
 
