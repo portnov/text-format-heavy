@@ -15,8 +15,11 @@ main = do
   TLIO.putStrLn $ format template xs
   time <- getZonedTime
   let vars :: [(TL.Text, Variable)]
-      vars = [("name", Variable ("Ilya" :: String)), ("time", Variable time), ("noun", Variable ("string" :: String))]
-  TLIO.putStrLn $ format (parseShellFormat' "Hello, $name! It is ${time:%H:%M:%S} now. Test ${noun}ification.") vars
+      vars = [("name", Variable ("Ilya" :: String)),
+              ("time", Variable time),
+              ("header.content-type", Variable ("text/json" :: String)),
+              ("noun", Variable ("string" :: String))]
+  TLIO.putStrLn $ format (parseShellFormat' "Hello, $name! It is ${time:%H:%M:%S} now. Test ${noun}ification. content: ${header.content-type} x.") vars
   let mbX = Nothing :: Maybe Float
       mbY = Just 7.37491 :: Maybe Float
       mbZ = Nothing :: Maybe Float

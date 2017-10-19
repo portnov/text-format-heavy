@@ -43,7 +43,7 @@ pVariable = do
     return $ FVariable (TL.pack name) fmt
   where
     variable = do
-      name <- many alphaNum
+      name <- many $ try alphaNum <|> try (char '-') <|> char '.'
       mbColon <- optionMaybe $ char ':'
       fmt <- case mbColon of
                Nothing -> return Nothing
