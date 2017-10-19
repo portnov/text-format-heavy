@@ -21,11 +21,11 @@ data FormatItem =
       vName :: VarName      -- ^ Variable name
     , vFormat :: VarFormat  -- ^ Variable format
     }
-  deriving (Show)
+  deriving (Eq, Show)
 
 -- | String format
 data Format = Format [FormatItem]
-  deriving (Show)
+  deriving (Eq, Show)
 
 instance Monoid Format where
   mempty = Format []
