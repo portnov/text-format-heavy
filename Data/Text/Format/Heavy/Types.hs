@@ -21,11 +21,19 @@ data FormatItem =
       vName :: VarName      -- ^ Variable name
     , vFormat :: VarFormat  -- ^ Variable format
     }
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show FormatItem where
+  show (FString text) = TL.unpack text
+  show (FVariable name Nothing) = TL.unpack $ "{" <> name <> "}"
+  show (FVariable name (Just fmt)) = TL.unpack $ "{" <> name <> ":" <> fmt <> "}"
 
 -- | String format
 data Format = Format [FormatItem]
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show Format where
+  show (Format lst) = concat $ map show lst
 
 instance Monoid Format where
   mempty = Format []

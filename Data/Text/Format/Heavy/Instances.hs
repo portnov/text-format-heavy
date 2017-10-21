@@ -261,6 +261,48 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "6" (_,_,_,_,_,_,g) = Just $ Variable g
   lookupVar _ _ = Nothing
 
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h)
+     => VarContainer (a, b, c, d, e, f, g, h) where
+  lookupVar "0" (a,_,_,_,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_,_,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_,_,_,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e,_,_,_) = Just $ Variable e
+  lookupVar "5" (_,_,_,_,_,f,_,_) = Just $ Variable f
+  lookupVar "6" (_,_,_,_,_,_,g,_) = Just $ Variable g
+  lookupVar "7" (_,_,_,_,_,_,_,h) = Just $ Variable h
+  lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h, Formatable i)
+     => VarContainer (a, b, c, d, e, f, g, h, i) where
+  lookupVar "0" (a,_,_,_,_,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_,_,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_,_,_,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_,_,_,_,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e,_,_,_,_) = Just $ Variable e
+  lookupVar "5" (_,_,_,_,_,f,_,_,_) = Just $ Variable f
+  lookupVar "6" (_,_,_,_,_,_,g,_,_) = Just $ Variable g
+  lookupVar "7" (_,_,_,_,_,_,_,h,_) = Just $ Variable h
+  lookupVar "8" (_,_,_,_,_,_,_,_,i) = Just $ Variable i
+  lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h, Formatable i, Formatable j)
+     => VarContainer (a, b, c, d, e, f, g, h, i, j) where
+  lookupVar "0" (a,_,_,_,_,_,_,_,_,_) = Just $ Variable a
+  lookupVar "1" (_,b,_,_,_,_,_,_,_,_) = Just $ Variable b
+  lookupVar "2" (_,_,c,_,_,_,_,_,_,_) = Just $ Variable c
+  lookupVar "3" (_,_,_,d,_,_,_,_,_,_) = Just $ Variable d
+  lookupVar "4" (_,_,_,_,e,_,_,_,_,_) = Just $ Variable e
+  lookupVar "5" (_,_,_,_,_,f,_,_,_,_) = Just $ Variable f
+  lookupVar "6" (_,_,_,_,_,_,g,_,_,_) = Just $ Variable g
+  lookupVar "7" (_,_,_,_,_,_,_,h,_,_) = Just $ Variable h
+  lookupVar "8" (_,_,_,_,_,_,_,_,i,_) = Just $ Variable i
+  lookupVar "9" (_,_,_,_,_,_,_,_,_,j) = Just $ Variable j
+  lookupVar _ _ = Nothing
+
 instance Formatable a => VarContainer (Several a) where
   lookupVar name (Several lst) =
     if not $ TL.all isDigit name
