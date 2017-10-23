@@ -4,7 +4,7 @@ module Data.Text.Format.Heavy.Build
   (format, formatEither,
    makeBuilder,
    -- * Formatters building utilities
-   align, applySign, applySharp,
+   align, applySign, applySharp, convertText,
    formatInt, formatStr, formatFloat, formatBool
   ) where
 
