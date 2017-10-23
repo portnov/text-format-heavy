@@ -25,6 +25,7 @@ pGenericFormat = do
     mbWidth <- optionMaybe (pWidth <?> "width specification")
     mbPrecision <- optionMaybe (pPrecision <?> "precision specification")
     mbRadix <- optionMaybe (pRadix <?> "radix specification")
+    mbConvert <- optionMaybe (pConvert <?> "conversion specification")
     return $ GenericFormat {
                gfFillChar = fill
              , gfAlign = align
@@ -33,6 +34,7 @@ pGenericFormat = do
              , gfWidth = mbWidth
              , gfPrecision = mbPrecision
              , gfRadix = mbRadix
+             , gfConvert = mbConvert
              }
   where
     pAlign :: Parsec TL.Text st Align
@@ -98,12 +100,21 @@ pGenericFormat = do
         'h' -> return Hexadecimal
         'd' -> return Decimal
 
+    pConvert :: Parsec TL.Text st Conversion
+    pConvert = do
+      char '~'
+      conv <- oneOf "ult"
+      case conv of
+        'u' -> return UpperCase
+        'l' -> return LowerCase
+        't' -> return TitleCase
+
 -- | Parse generic variable format.
 --
 -- Syntax is:
 --
 -- @
--- [[fill]align][sign][#][width][.precision][radix]
+-- [[fill]align][sign][#][width][.precision][radix][~conversion]
 -- @
 --
 -- where:
@@ -115,6 +126,8 @@ pGenericFormat = do
 -- * width - minimum length of the field
 -- * precision - number of decimal places after point, for floatting-point numbers
 -- * radix - @h@ or @x@ for hexadecimal, @d@ for decimal (default).
+-- * conversion - text conversion symbol. Supported are: @u@ - convert to upper case,
+--   @l@ - convert to lower case, @t@ - convert to title case (capitalize all words).
 --
 parseGenericFormat :: TL.Text -> Either ParseError GenericFormat
 parseGenericFormat text = runParser pGenericFormat () "<variable format specification>" text

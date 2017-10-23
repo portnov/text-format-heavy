@@ -77,6 +77,16 @@ applySharp False _ text = text
 applySharp True Decimal text = text
 applySharp True Hexadecimal text = B.fromLazyText "0x" <> text
 
+-- | Apply text conversion.
+convertText :: Maybe Conversion -> B.Builder -> B.Builder
+convertText Nothing builder = builder
+convertText (Just conv) builder = B.fromLazyText $ converter $ B.toLazyText builder
+  where
+    converter = case conv of
+                  UpperCase -> TL.toUpper
+                  LowerCase -> TL.toLower
+                  TitleCase -> TL.toTitle
+
 -- | Format integer number according to GenericFormat
 formatInt :: Integral a => GenericFormat -> a -> B.Builder
 formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x fmt) radix $ inRadix
@@ -89,11 +99,14 @@ formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp (gfLeading0x
 -- | Format floating-point number according to GenericFormat
 formatFloat :: RealFloat a => GenericFormat -> a -> B.Builder
 formatFloat fmt x =
-  align fmt $ applySign (gfSign fmt) x $ formatRealFloat Fixed (gfPrecision fmt) $ abs x
+    align fmt
+    $ applySign (gfSign fmt) x
+    $ formatRealFloat Fixed (gfPrecision fmt)
+    $ abs x
 
 -- | Format Text according to GenericFormat.
 formatStr :: GenericFormat -> TL.Text -> B.Builder
-formatStr fmt text = align fmt $ B.fromLazyText text
+formatStr fmt text = convertText (gfConvert fmt) $ align fmt $ B.fromLazyText text
 
 -- | Format boolean value.
 formatBool :: BoolFormat -> Bool -> B.Builder

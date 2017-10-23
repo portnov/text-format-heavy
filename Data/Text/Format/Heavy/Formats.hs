@@ -19,6 +19,13 @@ data Sign = Always | OnlyNegative | SpaceForPositive
 data Radix = Decimal | Hexadecimal
   deriving (Eq, Show)
 
+-- | Supported text conversions
+data Conversion =
+    UpperCase
+  | LowerCase
+  | TitleCase
+  deriving (Eq, Show)
+
 -- | Generic format description. This is usable for integers, floats and strings.
 data GenericFormat = GenericFormat {
     gfFillChar :: Char
@@ -28,6 +35,7 @@ data GenericFormat = GenericFormat {
   , gfWidth :: Maybe Int
   , gfPrecision :: Maybe Int
   , gfRadix :: Maybe Radix
+  , gfConvert :: Maybe Conversion
   }
   deriving (Eq, Show)
 
@@ -40,6 +48,7 @@ instance Default GenericFormat where
         , gfWidth = Nothing
         , gfPrecision = Nothing
         , gfRadix = Nothing
+        , gfConvert = Nothing
         }
 
 data BoolFormat = BoolFormat {
