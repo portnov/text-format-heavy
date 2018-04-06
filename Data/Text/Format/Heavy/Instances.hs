@@ -16,6 +16,7 @@ import Data.Default
 import Data.Word
 import Data.Int
 import Data.Maybe
+import Data.List (union)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -204,8 +205,14 @@ instance Formatable a => VarContainer (Single a) where
   lookupVar "0" (Single x) = Just $ Variable x
   lookupVar _ _ = Nothing
 
+instance Formatable a => ClosedVarContainer (Single a) where
+  allVarNames _ = ["0"]
+
 instance VarContainer () where
   lookupVar _ _ = Nothing
+
+instance ClosedVarContainer () where
+  allVarNames _ = []
 
 -- | Maybe container contains one variable (named 0); Nothing contains an empty string.
 instance Formatable a => VarContainer (Maybe a) where
@@ -213,10 +220,17 @@ instance Formatable a => VarContainer (Maybe a) where
   lookupVar "0" Nothing = Just $ Variable ()
   lookupVar _ _ = Nothing
 
+instance Formatable a => ClosedVarContainer (Maybe a) where
+  allVarNames Nothing = []
+  allVarNames (Just _) = ["0"]
+
 instance (Formatable a, Formatable b) => VarContainer (a, b) where
   lookupVar "0" (a,_) = Just $ Variable a
   lookupVar "1" (_,b) = Just $ Variable b
   lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b) => ClosedVarContainer (a, b) where
+  allVarNames _ = ["0", "1"]
   
 instance (Formatable a, Formatable b, Formatable c) => VarContainer (a, b, c) where
   lookupVar "0" (a,_,_) = Just $ Variable a
@@ -224,12 +238,18 @@ instance (Formatable a, Formatable b, Formatable c) => VarContainer (a, b, c) wh
   lookupVar "2" (_,_,c) = Just $ Variable c
   lookupVar _ _ = Nothing
   
+instance (Formatable a, Formatable b, Formatable c) => ClosedVarContainer (a, b, c) where
+  allVarNames _ = ["0", "1", "2"]
+
 instance (Formatable a, Formatable b, Formatable c, Formatable d) => VarContainer (a, b, c, d) where
   lookupVar "0" (a,_,_,_) = Just $ Variable a
   lookupVar "1" (_,b,_,_) = Just $ Variable b
   lookupVar "2" (_,_,c,_) = Just $ Variable c
   lookupVar "3" (_,_,_,d) = Just $ Variable d
   lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d) => ClosedVarContainer (a, b, c, d) where
+  allVarNames _ = ["0", "1", "2", "3"]
 
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e)
      => VarContainer (a, b, c, d, e) where
@@ -239,6 +259,10 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e)
   lookupVar "3" (_,_,_,d,_) = Just $ Variable d
   lookupVar "4" (_,_,_,_,e) = Just $ Variable e
   lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e)
+     => ClosedVarContainer (a, b, c, d, e) where
+  allVarNames _ = ["0", "1", "2", "3", "4"]
 
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f)
      => VarContainer (a, b, c, d, e, f) where
@@ -250,6 +274,10 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "5" (_,_,_,_,_,f) = Just $ Variable f
   lookupVar _ _ = Nothing
 
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f)
+     => ClosedVarContainer (a, b, c, d, e, f) where
+  allVarNames _ = ["0", "1", "2", "3", "4", "5"]
+
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g)
      => VarContainer (a, b, c, d, e, f, g) where
   lookupVar "0" (a,_,_,_,_,_,_) = Just $ Variable a
@@ -260,6 +288,10 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "5" (_,_,_,_,_,f,_) = Just $ Variable f
   lookupVar "6" (_,_,_,_,_,_,g) = Just $ Variable g
   lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g)
+     => ClosedVarContainer (a, b, c, d, e, f, g) where
+  allVarNames _ = ["0", "1", "2", "3", "4", "5", "6"]
 
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
           Formatable h)
@@ -273,6 +305,11 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "6" (_,_,_,_,_,_,g,_) = Just $ Variable g
   lookupVar "7" (_,_,_,_,_,_,_,h) = Just $ Variable h
   lookupVar _ _ = Nothing
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h)
+     => ClosedVarContainer (a, b, c, d, e, f, g, h) where
+  allVarNames _ = ["0", "1", "2", "3", "4", "5", "6", "7"]
 
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
           Formatable h, Formatable i)
@@ -289,6 +326,11 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar _ _ = Nothing
 
 instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h, Formatable i)
+     => ClosedVarContainer (a, b, c, d, e, f, g, h, i) where
+  allVarNames _ = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
           Formatable h, Formatable i, Formatable j)
      => VarContainer (a, b, c, d, e, f, g, h, i, j) where
   lookupVar "0" (a,_,_,_,_,_,_,_,_,_) = Just $ Variable a
@@ -303,6 +345,11 @@ instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, 
   lookupVar "9" (_,_,_,_,_,_,_,_,_,j) = Just $ Variable j
   lookupVar _ _ = Nothing
 
+instance (Formatable a, Formatable b, Formatable c, Formatable d, Formatable e, Formatable f, Formatable g,
+          Formatable h, Formatable i, Formatable j)
+     => ClosedVarContainer (a, b, c, d, e, f, g, h, i, j) where
+  allVarNames _ = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
 instance Formatable a => VarContainer (Several a) where
   lookupVar name (Several lst) =
     if not $ TL.all isDigit name
@@ -312,11 +359,20 @@ instance Formatable a => VarContainer (Several a) where
                then Nothing
                else Just $ Variable (lst !! n)
   
+instance Formatable a => ClosedVarContainer (Several a) where
+  allVarNames (Several lst) = map (TL.pack . show) [0 .. length lst - 1]
+
 instance Formatable x => VarContainer [(TL.Text, x)] where
   lookupVar name pairs = Variable `fmap` lookup name pairs
 
+instance Formatable x => ClosedVarContainer [(TL.Text, x)] where
+  allVarNames pairs = map fst pairs
+
 instance Formatable x => VarContainer (M.Map TL.Text x) where
   lookupVar name pairs = Variable `fmap` M.lookup name pairs
+
+instance Formatable x => ClosedVarContainer (M.Map TL.Text x) where
+  allVarNames pairs = M.keys pairs
 
 -- | Variable container which contains fixed value for any variable name.
 data DefaultValue = DefaultValue Variable
@@ -336,6 +392,10 @@ instance (VarContainer c1, VarContainer c2) => VarContainer (ThenCheck c1 c2) wh
     case lookupVar name c1 of
       Just result -> Just result
       Nothing -> lookupVar name c2
+
+instance (ClosedVarContainer c1, ClosedVarContainer c2) => ClosedVarContainer (ThenCheck c1 c2) where
+  allVarNames (ThenCheck c1 c2) =
+    allVarNames c1 `union` allVarNames c2
 
 -- | Use variables from specified container, or use default value if
 -- variable is not found in container.

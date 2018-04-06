@@ -78,5 +78,8 @@ formatAnyVar fmt (Variable v) = formatVar fmt v
 class VarContainer c where
   lookupVar :: VarName -> c -> Maybe Variable
 
+class VarContainer c => ClosedVarContainer c where
+  allVarNames :: c -> [VarName]
+
 ------------------------------------------------------------------------------
 
