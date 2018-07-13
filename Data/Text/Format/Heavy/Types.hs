@@ -1,9 +1,17 @@
-{-# LANGUAGE ExistentialQuantification, TypeFamilies, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE ExistentialQuantification, TypeFamilies, FlexibleContexts, OverloadedStrings, CPP #-}
 -- | This module contains basic type definitions
 module Data.Text.Format.Heavy.Types where
 
 import Data.Default
+
+#if MIN_VERSION_base(4,9,0)
+import Data.Monoid (Monoid)
+import Data.Semigroup ((<>))
+import qualified Data.Semigroup as Semigroup
+#else
 import Data.Monoid
+#endif
+
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
@@ -35,9 +43,26 @@ data Format = Format [FormatItem]
 instance Show Format where
   show (Format lst) = concat $ map show lst
 
+appendFormat :: Format -> Format -> Format
+appendFormat (Format xs) (Format ys) = Format (xs ++ ys)
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup.Semigroup Format where
+  (<>) = appendFormat
+#endif
+
 instance Monoid Format where
   mempty = Format []
-  mappend (Format xs) (Format ys) = Format (xs ++ ys)
+
+#if MIN_VERSION_base(4,11,0)
+  -- starting with base-4.11, mappend definitions are redundant;
+#elif MIN_VERSION_base(4,9,0)
+  -- this is redundant starting with base-4.11 / GHC 8.4
+  mappend = (Semigroup.<>)
+#else
+  -- prior to GHC 8.0 / base-4.9 where no `Semigroup` class existed
+  mappend = appendFormat
+#endif
 
 -- | Can be used for different data types describing formats of specific types.
 class (Default f, Show f) => IsVarFormat f where
