@@ -39,7 +39,7 @@ format fmt vars = either error id $ formatEither fmt vars
 -- This version returns @Left@ value with error description in case of error in 
 -- format string or error during formatting.
 formatEither :: VarContainer vars => Format -> vars -> Either String TL.Text
-formatEither fmt vars = either Left (Right . B.toLazyText) $ makeBuilder fmt vars
+formatEither fmt vars = B.toLazyText <$> makeBuilder fmt vars
 
 align' :: Int -> Align -> Char -> B.Builder -> B.Builder
 align' width AlignLeft fill text =

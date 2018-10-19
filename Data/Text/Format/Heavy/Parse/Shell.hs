@@ -48,6 +48,7 @@ import Text.Parsec
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Formats
 import Data.Text.Format.Heavy.Parse.Types
+import Data.Text.Format.Heavy.Parse.VarFormat
 
 -- TODO: proper handling of escaping
 anyChar' :: Parser Char
@@ -67,10 +68,9 @@ pVariable = do
       name <- many $ try alphaNum <|> try (char '-') <|> char '.'
       mbColon <- optionMaybe $ char ':'
       fmt <- case mbColon of
-               Nothing -> return Nothing
+               Nothing -> return DefaultVarFormat
                Just _ -> do
-                  fmtStr <- many (noneOf "}" <|> try ('}' <$ string "\\}"))
-                  return $ Just $ TL.pack fmtStr
+                  pAnyStdFormat
       name' <- if null name
                  then do
                       st <- getState
@@ -82,7 +82,7 @@ pVariable = do
 
     unbracedVariable = do
       name <- many1 alphaNum
-      return (name, Nothing)
+      return (name, DefaultVarFormat)
 
 -- | Parsec parser for string format.
 pShellFormat :: Parser Format
@@ -95,4 +95,10 @@ parseShellFormat text = runParser pShellFormat initParserState "<format string>"
 -- | Version of parseShellFormat which throws @error@ in case of syntax error in the formatting string.
 parseShellFormat' :: TL.Text -> Format
 parseShellFormat' text = either (error . show) id $ parseShellFormat text
+
+data Shell = Shell
+
+instance FormatParser Shell where
+  parseStringFormat _ = parseShellFormat
+  parseVarFormat _ = parseAnyStdFormat
 

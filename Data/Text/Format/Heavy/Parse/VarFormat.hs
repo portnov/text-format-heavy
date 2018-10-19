@@ -4,6 +4,7 @@ module Data.Text.Format.Heavy.Parse.VarFormat
   where
 
 import Data.Maybe
+import Data.Typeable
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
@@ -156,6 +157,14 @@ pBoolFormat = do
 parseBoolFormat :: TL.Text -> Either ParseError BoolFormat
 parseBoolFormat text = runParser pBoolFormat () "<boolean format specification>" text
 
+pMaybeFormat :: Parsec TL.Text st f -> Parsec TL.Text st (MaybeFormat f)
+pMaybeFormat p = do
+  fmt <- p
+  dflt <- optionMaybe $ do
+            char '|'
+            many1 $ noneOf "}"
+  return $ MaybeFormat (TL.pack $ fromMaybe "" dflt) fmt
+
 -- | Try to parse format for @Maybe x@ type.
 -- The syntax is:
 --
@@ -175,4 +184,23 @@ parseMaybeFormat text =
   in  if TL.null xFmtStr
         then Nothing
         else Just (TL.init xFmtStr, nothingStr)
+
+pAnyStdFormat :: Parsec TL.Text st VarFormat
+pAnyStdFormat = try anyMaybe <|> any
+  where
+    any = try (liftBool <$> pBoolFormat) <|> (liftGeneric <$> pGenericFormat)
+
+    maybeBool = pMaybeFormat pBoolFormat
+    maybeGeneric = pMaybeFormat pGenericFormat
+
+    anyMaybe = try (AnyVarFormat <$> maybeBool) <|> (AnyVarFormat <$> maybeGeneric)
+
+    liftBool :: BoolFormat -> VarFormat
+    liftBool f = AnyVarFormat  f
+
+    liftGeneric :: GenericFormat -> VarFormat
+    liftGeneric f = AnyVarFormat  f
+
+parseAnyStdFormat :: TL.Text -> Either ParseError VarFormat
+parseAnyStdFormat text = runParser pAnyStdFormat () "<format specification>" text
 

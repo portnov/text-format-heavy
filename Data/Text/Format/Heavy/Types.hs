@@ -1,18 +1,48 @@
-{-# LANGUAGE ExistentialQuantification, TypeFamilies, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ConstraintKinds #-}
+
 -- | This module contains basic type definitions
 module Data.Text.Format.Heavy.Types where
 
 import Data.Default
 import Data.Monoid
+import Data.Typeable
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
+import qualified Language.Haskell.TH.Syntax as TH
+import Language.Haskell.TH.Lift
+import Text.Parsec (ParseError)
+import GHC.Exts (Constraint)
 
 -- | Variable name
 type VarName = TL.Text
 
 -- | Variable format in text form. Nothing means default format.
-type VarFormat = Maybe TL.Text
+data VarFormat =
+    DefaultVarFormat
+  | forall f. IsVarFormat f => AnyVarFormat f
+
+instance Eq VarFormat where
+  DefaultVarFormat == DefaultVarFormat = True
+  (AnyVarFormat f1) == (AnyVarFormat f2) =
+      typeOf f1 == typeOf f2 && show f1 == show f2
+  _ == _ = False
+
+instance Show VarFormat where
+  show DefaultVarFormat = "default"
+  show (AnyVarFormat f) = show f
+
+fromVarFormat :: forall f. Typeable f => VarFormat -> Maybe f
+fromVarFormat DefaultVarFormat = Nothing
+fromVarFormat (AnyVarFormat f) = cast f
+
+mkVarFormat :: IsVarFormat f => f -> VarFormat
+mkVarFormat f = AnyVarFormat f
 
 -- | String format item.
 data FormatItem =
@@ -21,32 +51,51 @@ data FormatItem =
       vName :: VarName      -- ^ Variable name
     , vFormat :: VarFormat  -- ^ Variable format
     }
-  deriving (Eq)
+
+instance Eq FormatItem where
+  (FString t1) == (FString t2) = t1 == t2
+  (FVariable n1 f1) == (FVariable n2 f2) =
+      n1 == n2 && f1 == f2
+  _ == _ = False
 
 instance Show FormatItem where
   show (FString text) = TL.unpack text
-  show (FVariable name Nothing) = TL.unpack $ "{" <> name <> "}"
-  show (FVariable name (Just fmt)) = TL.unpack $ "{" <> name <> ":" <> fmt <> "}"
+  show (FVariable {..}) = TL.unpack $ "{" <> vName <> sFormat <> "}"
+    where
+      sFormat = case vFormat of
+                  DefaultVarFormat -> ""
+                  AnyVarFormat fmt -> ":" <> (TL.pack $ show fmt)
 
 -- | String format
 data Format = Format [FormatItem]
   deriving (Eq)
 
 instance Show Format where
-  show (Format lst) = concat $ map show lst
+  show (Format lst) = concatMap show lst
 
 instance Monoid Format where
   mempty = Format []
   mappend (Format xs) (Format ys) = Format (xs ++ ys)
 
 -- | Can be used for different data types describing formats of specific types.
-class (Default f, Show f) => IsVarFormat f where
-  -- | Left for errors.
-  parseVarFormat :: TL.Text -> Either String f
+class (Default f, Show f, Typeable f, Lift f) => IsVarFormat f where
+  type PresentableAs f t :: Constraint
 
-instance IsVarFormat () where
-  parseVarFormat "" = Right ()
-  parseVarFormat fmt = Left $ "Unsupported format: " ++ TL.unpack fmt
+  formatVar' :: (PresentableAs f t, Formatable t) => f -> t -> Either String B.Builder
+  formatVar' fmt x = formatVar (AnyVarFormat fmt) x
+--   -- | Left for errors.
+--   parseVarFormat :: TL.Text -> Either String f
+
+-- instance IsVarFormat () where
+--   parseVarFormat "" = Right ()
+--   parseVarFormat fmt = Left $ "Unsupported format: " ++ TL.unpack fmt
+
+class FormatParser p where
+  parseStringFormat :: p -> TL.Text -> Either ParseError Format
+  parseVarFormat :: p -> TL.Text -> Either ParseError VarFormat
+
+-- class Formatable' fmt a where
+--   formatBy :: fmt -> a -> Either String B.Builder
 
 -- | Value that can be formatted to be substituted into format string.
 class Formatable a where
@@ -61,8 +110,10 @@ class Formatable a where
 -- @[Variable 1, Variable "x"] :: [Variable]@.
 data Variable = forall a. Formatable a => Variable a
 
+-- data Variable' fmt = forall a. Formatable' fmt a => Variable' a
+
 instance Show Variable where
-  show (Variable v) = either error toString $ formatVar Nothing v
+  show (Variable v) = either error toString $ formatVar DefaultVarFormat v
     where
       toString :: B.Builder -> String
       toString b = TL.unpack $ B.toLazyText b

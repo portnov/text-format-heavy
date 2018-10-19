@@ -35,31 +35,17 @@ import Data.Text.Format.Heavy.Build
 instance IsString Format where
   fromString str = parseFormat' (fromString str)
 
------------------------ IsVarFormat instances --------------------------------------
-
-instance IsVarFormat GenericFormat where
-  parseVarFormat text = either (Left . show) Right $ parseGenericFormat text
-
-instance IsVarFormat BoolFormat where
-  parseVarFormat text = either (Left . show) Right $ parseBoolFormat text
-
 ---------------------- Generic formatters -------------------------------------------
 
 -- | Generic formatter for integer types
 genericIntFormat :: Integral a => VarFormat -> a -> Either String B.Builder
-genericIntFormat Nothing x = Right $ formatInt def x
-genericIntFormat (Just fmtStr) x =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatInt fmt x
+genericIntFormat fmt x =
+  Right $ formatInt (fromMaybe def $ fromVarFormat fmt) x
 
 -- | Generic formatter for floating-point types
 genericFloatFormat :: RealFloat a => VarFormat -> a -> Either String B.Builder
-genericFloatFormat Nothing x = Right $ formatFloat def x
-genericFloatFormat (Just fmtStr) x =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatFloat fmt x
+genericFloatFormat fmt x =
+  Right $ formatFloat (fromMaybe def $ fromVarFormat fmt) x
 
 ------------------------ Formatable instances -------------------------------------------
 
@@ -67,20 +53,32 @@ genericFloatFormat (Just fmtStr) x =
 instance Formatable () where
   formatVar _ _ = Right mempty
 
+instance GenericFormatType () where
+
 instance Formatable Int where
   formatVar fmt x = genericIntFormat fmt x
+
+instance GenericFormatType Int where
 
 instance Formatable Int8 where
   formatVar fmt x = genericIntFormat fmt x
 
+instance GenericFormatType Int8 where
+
 instance Formatable Int16 where
   formatVar fmt x = genericIntFormat fmt x
+
+instance GenericFormatType Int16 where
 
 instance Formatable Int32 where
   formatVar fmt x = genericIntFormat fmt x
 
+instance GenericFormatType Int32 where
+
 instance Formatable Int64 where
   formatVar fmt x = genericIntFormat fmt x
+
+instance GenericFormatType Int64 where
 
 instance Formatable Word8 where
   formatVar fmt x = genericIntFormat fmt x
@@ -104,46 +102,28 @@ instance Formatable Double where
   formatVar fmt x = genericFloatFormat fmt x
 
 instance Formatable String where
-  formatVar Nothing text = Right $ formatStr def (fromString text)
-  formatVar (Just fmtStr) text =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatStr fmt (fromString text)
+  formatVar fmt text =
+    Right $ formatStr (fromMaybe def $ fromVarFormat fmt) (fromString text)
 
 instance Formatable T.Text where
-  formatVar Nothing text = Right $ formatStr def $ TL.fromStrict text
-  formatVar (Just fmtStr) text =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatStr fmt $ TL.fromStrict text
+  formatVar fmt text =
+    Right $ formatStr (fromMaybe def $ fromVarFormat fmt) (TL.fromStrict text)
 
 instance Formatable TL.Text where
-  formatVar Nothing text = Right $ formatStr def text
-  formatVar (Just fmtStr) text =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatStr fmt text
+  formatVar fmt text =
+    Right $ formatStr (fromMaybe def $ fromVarFormat fmt) text
 
 instance Formatable BS.ByteString where
-  formatVar Nothing text = Right $ formatStr def $ TL.fromStrict $ TE.decodeUtf8 text
-  formatVar (Just fmtStr) text =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatStr fmt $ TL.fromStrict $ TE.decodeUtf8 text
+  formatVar fmt text =
+    Right $ formatStr (fromMaybe def $ fromVarFormat fmt) $ TL.fromStrict $ TE.decodeUtf8 text
 
 instance Formatable BSL.ByteString where
-  formatVar Nothing text = Right $ formatStr def $ TLE.decodeUtf8 text
-  formatVar (Just fmtStr) text =
-    case parseGenericFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatStr fmt $ TLE.decodeUtf8 text
+  formatVar fmt text =
+    Right $ formatStr (fromMaybe def $ fromVarFormat fmt) $ TLE.decodeUtf8 text
 
 instance Formatable Bool where
-  formatVar Nothing x = Right $ formatBool def x
-  formatVar (Just fmtStr) x =
-    case parseBoolFormat fmtStr of
-      Left err -> Left $ show err
-      Right fmt -> Right $ formatBool fmt x
+  formatVar fmt x =
+    Right $ formatBool (fromMaybe def $ fromVarFormat fmt) x
 
 -- | Container for single parameter.
 -- Example usage:
@@ -183,17 +163,17 @@ instance Show a => Formatable (Shown a) where
   formatVar _ (Shown x) = Right $ B.fromLazyText $ TL.pack $ show x
 
 instance Formatable a => Formatable (Maybe a) where
-  formatVar Nothing Nothing = Right mempty
-  formatVar Nothing (Just x) = formatVar Nothing x
-  formatVar (Just fmtStr) m =
-    case parseMaybeFormat fmtStr of
+  formatVar DefaultVarFormat Nothing = Right mempty
+  formatVar DefaultVarFormat (Just x) = formatVar DefaultVarFormat x
+  formatVar f m =
+    case fromVarFormat f of
       Nothing -> case m of
                    Nothing -> Right mempty
-                   Just x -> formatVar (Just fmtStr) x
-      Just (xFmtStr, nothingStr) ->
-                 case m of
-                   Nothing -> Right $ B.fromLazyText nothingStr
-                   Just x -> formatVar (Just xFmtStr) x
+                   Just x -> formatVar f x
+      Just (MaybeFormat dflt fmt) ->
+        case m of
+          Nothing -> Right $ B.fromLazyText dflt
+          Just x  -> formatVar fmt x
 
 instance (Formatable a, Formatable b) => Formatable (Either a b) where
   formatVar fmt (Left x) = formatVar fmt x

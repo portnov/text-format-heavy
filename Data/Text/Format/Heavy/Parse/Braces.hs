@@ -28,6 +28,7 @@ import Text.Parsec
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Formats
 import Data.Text.Format.Heavy.Parse.Types
+import Data.Text.Format.Heavy.Parse.VarFormat
 
 -- TODO: proper handling of escaping
 anyChar' :: Parser Char
@@ -46,10 +47,9 @@ pVariable = do
       name <- many $ try alphaNum <|> try (char '-') <|> char '.'
       mbColon <- optionMaybe $ char ':'
       fmt <- case mbColon of
-               Nothing -> return Nothing
+               Nothing -> return DefaultVarFormat
                Just _ -> do
-                  fmtStr <- many anyChar'
-                  return $ Just $ TL.pack fmtStr
+                  pAnyStdFormat
       name' <- if null name
                  then do
                       st <- getState
@@ -70,4 +70,10 @@ parseFormat text = runParser pBracesFormat initParserState "<format string>" tex
 -- | Version of parseFormat which throws @error@ in case of syntax error in the formatting string.
 parseFormat' :: TL.Text -> Format
 parseFormat' text = either (error . show) id $ parseFormat text
+
+data Braces = Braces
+
+instance FormatParser Braces where
+  parseStringFormat _ = parseFormat
+  parseVarFormat _ = parseAnyStdFormat
 
