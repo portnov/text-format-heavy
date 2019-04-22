@@ -46,10 +46,9 @@ instance Show Format where
 appendFormat :: Format -> Format -> Format
 appendFormat (Format xs) (Format ys) = Format (xs ++ ys)
 
-#if MIN_VERSION_base(4,9,0)
-instance Semigroup.Semigroup Format where
+
+instance Semigroup Format where
   (<>) = appendFormat
-#endif
 
 instance Monoid Format where
   mempty = Format []
