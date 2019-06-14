@@ -46,7 +46,7 @@ format :: VarContainer vars => Format -> vars -> TL.Text
 format fmt vars = either error id $ formatEither fmt vars
 
 -- | The main formatting function.
--- This version returns @Left@ value with error description in case of error in 
+-- This version returns @Left@ value with error description in case of error in
 -- format string or error during formatting.
 formatEither :: VarContainer vars => Format -> vars -> Either String TL.Text
 formatEither fmt vars = B.toLazyText `fmap` makeBuilder fmt vars
@@ -98,10 +98,13 @@ formatInt fmt x = align fmt $ applySign (gfSign fmt) x $ applySharp
   radix
   inRadix
  where
-  radix   = fromMaybe Decimal (gfRadix fmt)
+  radix = fromMaybe Decimal (gfRadix fmt)
+  conversion = fromMaybe LowerCase (gfConvert fmt)
   inRadix = case radix of
     Decimal     -> decimal (abs x)
-    Hexadecimal -> hexadecimal (abs x)
+    Hexadecimal -> case conversion of
+      LowerCase -> hexadecimal (abs x)
+      _         -> B.fromLazyText . TL.toUpper . B.toLazyText . hexadecimal . abs $ x
 
 -- | Format floating-point number according to GenericFormat
 formatFloat :: RealFloat a => GenericFormat -> a -> B.Builder
@@ -120,4 +123,3 @@ formatStr fmt text =
 formatBool :: BoolFormat -> Bool -> B.Builder
 formatBool fmt True  = B.fromLazyText $ bfTrue fmt
 formatBool fmt False = B.fromLazyText $ bfFalse fmt
-
