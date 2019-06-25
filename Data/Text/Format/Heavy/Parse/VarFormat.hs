@@ -4,10 +4,11 @@ module Data.Text.Format.Heavy.Parse.VarFormat
   where
 
 import Data.Maybe
+import Control.Applicative ((<|>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
-import Text.Parsec
+import Text.Parsec hiding ((<|>))
 
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Formats
@@ -24,7 +25,7 @@ pGenericFormat = do
     let leading0x = fromMaybe False mbLeading0x
     mbWidth <- optionMaybe (pWidth <?> "width specification")
     mbPrecision <- optionMaybe (pPrecision <?> "precision specification")
-    mbRadix <- optionMaybe (pRadix <?> "radix specification")
+    mbRadixConvert <- optionMaybe (pRadix <?> "radix specification")
     mbConvert <- optionMaybe (pConvert <?> "conversion specification")
     return $ GenericFormat {
                gfFillChar = fill
@@ -33,8 +34,8 @@ pGenericFormat = do
              , gfLeading0x = leading0x
              , gfWidth = mbWidth
              , gfPrecision = mbPrecision
-             , gfRadix = mbRadix
-             , gfConvert = mbConvert
+             , gfRadix = fst <$> mbRadixConvert
+             , gfConvert = mbConvert <|> fmap snd mbRadixConvert
              }
   where
     pAlign :: Parsec TL.Text st Align
@@ -91,14 +92,16 @@ pGenericFormat = do
     pPrecision = do
       char '.'
       natural
-    
-    pRadix :: Parsec TL.Text st Radix
+
+    pRadix :: Parsec TL.Text st (Radix, Conversion)
     pRadix = do
-      rc <- oneOf "xhd"
+      rc <- oneOf "xXhHd"
       case rc of
-        'x' -> return Hexadecimal
-        'h' -> return Hexadecimal
-        'd' -> return Decimal
+        'x' -> return (Hexadecimal, LowerCase)
+        'X' -> return (Hexadecimal, UpperCase)
+        'h' -> return (Hexadecimal, LowerCase)
+        'H' -> return (Hexadecimal, UpperCase)
+        'd' -> return (Decimal, LowerCase)
 
     pConvert :: Parsec TL.Text st Conversion
     pConvert = do
@@ -175,4 +178,3 @@ parseMaybeFormat text =
   in  if TL.null xFmtStr
         then Nothing
         else Just (TL.init xFmtStr, nothingStr)
-
