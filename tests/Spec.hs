@@ -27,6 +27,8 @@ main = hspec $ do
     it "formats examples from wiki" $ do
       format "hex: {:#x}" (Single (17 :: Int)) `shouldBe` "hex: 0x11"
       format "hex: {:#h}" (Single (17 :: Int)) `shouldBe` "hex: 0x11"
+      format "hex: {:#X}" (Single (427 :: Int)) `shouldBe` "hex: 0x1AB"
+      format "hex: {:#H}" (Single (427 :: Int)) `shouldBe` "hex: 0x1AB"
       format "dec: {:#d}" (Single (17 :: Int)) `shouldBe` "dec: 17"
       format "center: <{0:^10}>" (Single ("hello" :: String)) `shouldBe` "center: <   hello  >"
       format "float: {:+6.4}" (Single (2.718281828 :: Double)) `shouldBe` "float: +2.7183"
