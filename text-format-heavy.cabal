@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 896b6be0b98fde31c740767a764a59a7f711a4b9352d08472fd9d931c700fbf1
+-- hash: e11146b03cc10b79134bc34ce77412a14f480aac6d97da94db3deafa7d2a93cb
 
 name:           text-format-heavy
 version:        0.1.5.2
@@ -25,12 +27,11 @@ maintainer:     portnov84@rambler.ru
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     ChangeLog.md
-    examples/Benchmarks.hs
-    examples/test.hs
     README.md
+    examples/test.hs
+    examples/Benchmarks.hs
 
 source-repository head
   type: git
@@ -64,5 +65,19 @@ library
     , text >=1.2 && <1.3
     , th-lift
     , th-lift-instances
+    , time >=1.5
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_text_format_heavy
+  hs-source-dirs:
+      tests
+  build-depends:
+      base >=4.8 && <5
+    , hspec
+    , text-format-heavy
     , time >=1.5
   default-language: Haskell2010
