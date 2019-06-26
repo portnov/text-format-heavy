@@ -1,6 +1,8 @@
 text-format-heavy README
 ========================
 
+[![Build Status](https://travis-ci.org/portnov/dates.svg?branch=master)](https://travis-ci.org/portnov/dates)
+
 This is Haskell string formatting library, which prefers functionality and
 extendability over light weight and (probably, in some cases) performance.
 This library is more or less analog of Python's string.format function, and
