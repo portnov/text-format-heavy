@@ -38,14 +38,6 @@ matrix:
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-11"
-    compiler: ": #stack 8.2.2"
-    addons: {apt: {packages: [libgmp-dev]}}
-
-  - env: BUILD=stack ARGS="--resolver lts-12"
-    compiler: ": #stack 8.4.4"
-    addons: {apt: {packages: [libgmp-dev]}}
-
   - env: BUILD=stack ARGS="--resolver lts-13"
     compiler: ": #stack 8.6.5"
     addons: {apt: {packages: [libgmp-dev]}}
@@ -62,14 +54,6 @@ matrix:
 
   - env: BUILD=stack ARGS="--resolver lts-9"
     compiler: ": #stack 8.0.2 osx"
-    os: osx
-
-  - env: BUILD=stack ARGS="--resolver lts-11"
-    compiler: ": #stack 8.2.2 osx"
-    os: osx
-
-  - env: BUILD=stack ARGS="--resolver lts-12"
-    compiler: ": #stack 8.4.4 osx"
     os: osx
 
   - env: BUILD=stack ARGS="--resolver lts-13"
