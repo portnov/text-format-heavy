@@ -43,7 +43,10 @@ main = hspec $ do
       format "Value: {:.3}." (Single (Nothing :: Maybe Float)) `shouldBe` "Value: ."
 
     it "formats time" $ do
-      let Just time = parseTimeM True defaultTimeLocale rfc822DateFormat "Sat,  3 Jun 2017 19:06:01 YEKT" :: Maybe ZonedTime
+      let yektLocale = defaultTimeLocale
+                         { knownTimeZones = [TimeZone (5 * 60) False "YEKT"] }
+            -- `defaultTimeLocale` does not know about Yekaterinburg.
+          Just time =  parseTimeM True yektLocale rfc822DateFormat "Sat,  3 Jun 2017 19:06:01 YEKT" :: Maybe ZonedTime
       format "time: {:%H:%M:%S}" (Single time) `shouldBe` "time: 19:06:01"
       format "time: {:%H:%M:%S %Z}" (Single time) `shouldBe` "time: 19:06:01 YEKT"
       format "default: {}" (Single time) `shouldBe` "default: Sat,  3 Jun 2017 19:06:01 YEKT"
