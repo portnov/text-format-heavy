@@ -39,6 +39,10 @@ main = hspec $ do
         format "one: {the-key}!"
           ((Map.singleton "the-key" "the string") :: Map Text Text)
             `shouldBe` "one: the string!"
+      it "with underscores" $ do
+        format "one: {the_key}!"
+          ((Map.singleton "the_key" "the string") :: Map Text Text)
+            `shouldBe` "one: the string!"
 
   describe "documentation" $ do
     it "formats examples from wiki" $ do
