@@ -2,6 +2,9 @@
 
 import Test.Hspec
 import Data.Time
+import qualified Data.Map as Map
+import Data.Map (Map)
+import Data.Text.Lazy (Text)
 
 import Data.Text.Format.Heavy
 import Data.Text.Format.Heavy.Time
@@ -22,6 +25,24 @@ main = hspec $ do
     it "handles parameter numbers" $ do
       format "one: {0}, two: {1}" ((1:: Int), (2::Int)) `shouldBe` "one: 1, two: 2"
       format "two: {1}, one: {0}" ((1:: Int), (2::Int)) `shouldBe` "two: 2, one: 1"
+
+    describe "handles parameters names" $ do
+      it "with ascii characters" $ do
+        format "one: {theKey}!"
+          ((Map.singleton "theKey" "the string") :: Map Text Text)
+            `shouldBe` "one: the string!"
+      it "with dots" $ do
+        format "one: {the.key}!"
+          ((Map.singleton "the.key" "the string") :: Map Text Text)
+            `shouldBe` "one: the string!"
+      it "with dashes" $ do
+        format "one: {the-key}!"
+          ((Map.singleton "the-key" "the string") :: Map Text Text)
+            `shouldBe` "one: the string!"
+      it "with underscores" $ do
+        format "one: {the_key}!"
+          ((Map.singleton "the_key" "the string") :: Map Text Text)
+            `shouldBe` "one: the string!"
 
   describe "documentation" $ do
     it "formats examples from wiki" $ do
