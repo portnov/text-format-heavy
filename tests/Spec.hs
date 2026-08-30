@@ -11,6 +11,7 @@ import qualified Data.Text.Lazy as TL
 
 import Data.Text.Format.Heavy
 import Data.Text.Format.Heavy.Build (formatEither)
+import Data.Text.Format.Heavy.Parse (FormatParseItem (..), parse)
 import Data.Text.Format.Heavy.Parse.Shell
 import Data.Text.Format.Heavy.Time
 
@@ -19,6 +20,21 @@ main = hspec $ do
   describe "trivial" $ do
     it "formats string literal without formatting characters" $ do
       format "hello world" () `shouldBe` "hello world"
+
+  describe "parse" $ do
+    it "returns replacement fields" $ do
+      parse "{name}"
+        `shouldBe` Right [FormatReplacementField "name" Nothing]
+      parse "{name:.2}"
+        `shouldBe` Right [FormatReplacementField "name" (Just ".2")]
+
+    it "keeps strings and fields in order" $ do
+      parse "{{name}} {name}"
+        `shouldBe` Right [FormatString "{name} ", FormatReplacementField "name" Nothing]
+
+    it "keeps nested format specs raw" $ do
+      parse "{value:{width}}"
+        `shouldBe` Right [FormatReplacementField "value" (Just "{width}")]
 
   describe "simple" $ do
     it "formats int properly" $ do

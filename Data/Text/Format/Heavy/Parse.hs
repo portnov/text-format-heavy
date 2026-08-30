@@ -23,22 +23,37 @@
 -- pretty complex, for example they can include alignment, rounding, and so on.
 --
 module Data.Text.Format.Heavy.Parse
-  (-- * Parse functions
-   parseFormat, parseFormat',
-   parseGenericFormat, parseBoolFormat,
-   parseMaybeFormat,
-   -- * Parsec functions
-   pGenericFormat, pBoolFormat
+  ( FormatParseItem (..),
+    -- * Parse functions
+    parse,
+    parseFormat, parseFormat',
+    parseGenericFormat, parseBoolFormat,
+    parseMaybeFormat,
+    -- * Parsec functions
+    pGenericFormat, pBoolFormat
   ) where
 
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
-import Text.Parsec
+import Text.Parsec (ParseError)
 
 import Data.Text.Format.Heavy.Types
 import Data.Text.Format.Heavy.Formats
 import Data.Text.Format.Heavy.Parse.VarFormat
 import Data.Text.Format.Heavy.Parse.Braces
 
+data FormatParseItem
+  = FormatString TL.Text
+  | FormatReplacementField TL.Text (Maybe TL.Text)
+  deriving (Eq, Show)
+
+parse :: TL.Text -> Either ParseError [FormatParseItem]
+parse text = toParseItems <$> parseFormat text
+
+toParseItems :: Format -> [FormatParseItem]
+toParseItems (Format items) = map toParseItem items
+  where
+    toParseItem (FString text) = FormatString text
+    toParseItem (FVariable name fmt) = FormatReplacementField name fmt

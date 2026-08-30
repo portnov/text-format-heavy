@@ -1,25 +1,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | This module defines the default syntax of format strings, generally described as
--- "any part in braces is variable substitution".
---
--- Examples of valid variable substitutions are:
---
--- * @"Simple: {}"@
---
--- * @"Numbered: {0}"@
---
--- * @"Named: {var}"@
---
--- * @"Specifying variable formatting: {var:+8.4}"@
-module Data.Text.Format.Heavy.Parse.Braces
-  ( -- * Parse functions
+{- | This module defines the default syntax of format strings, generally described as
+"any part in braces is variable substitution".
+
+Examples of valid variable substitutions are:
+
+* @"Simple: {}"@
+
+* @"Numbered: {0}"@
+
+* @"Named: {var}"@
+
+* @"Specifying variable formatting: {var:+8.4}"@
+-}
+module Data.Text.Format.Heavy.Parse.Braces (
+    -- * Parse functions
     parseFormat,
     parseFormat',
 
     -- * Parsec functions
     pBracesFormat,
-  )
+)
 where
 
 import Data.Maybe
@@ -31,42 +32,61 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
 import Text.Parsec
 
-escapes :: [(String, Char)]
-escapes =
-  [ ("{{", '{'),
-    ("}}", '}'),
-    ("\\{", '{'),
-    ("\\}", '}')
-  ]
+replaceWith :: a -> String -> Parser a
+replaceWith c s = c <$ string s
+
+unescapeBraces :: String -> String -> Parser Char
+unescapeBraces open close =
+    try (replaceWith '{' open)
+        <|> try (replaceWith '}' close)
 
 anyChar' :: Parser Char
-anyChar' = choice [c <$ string s | (s, c) <- escapes] <|> noneOf "{}"
+anyChar' =
+    unescapeBraces "{{" "}}"
+        <|> unescapeBraces "\\{" "\\}"
+        <|> noneOf "{}"
+
+formatSpecChar :: Parser String
+formatSpecChar = try nestedBraces <|> asString anyChar'
+  where
+    nestedBraces = do
+        char '{'
+        inner <-
+            concat
+                <$> many
+                    ( try nestedBraces
+                        <|> replaceWith "{{" "{"
+                        <|> asString (noneOf "{}")
+                    )
+        char '}'
+        return $ "{" ++ inner ++ "}"
+    asString = ((: []) <$>)
 
 pVerbatim :: Parser FormatItem
 pVerbatim = (FString . TL.pack) `fmap` many1 anyChar'
 
 pVariable :: Parser FormatItem
 pVariable = do
-  (name, fmt) <- between (char '{') (char '}') variable
-  return $ FVariable (TL.pack name) fmt
+    (name, fmt) <- between (char '{') (char '}') variable
+    return $ FVariable (TL.pack name) fmt
   where
     variable = do
-      name <- many $ try alphaNum <|> try (char '-') <|> char '.' <|> char '_'
-      mbColon <- optionMaybe $ char ':'
-      fmt <- case mbColon of
-        Nothing -> return Nothing
-        Just _ -> do
-          fmtStr <- many anyChar'
-          return $ Just $ TL.pack fmtStr
-      name' <-
-        if null name
-          then do
-            st <- getState
-            let n = psNextIndex st
-            modifyState $ \st -> st {psNextIndex = psNextIndex st + 1}
-            return $ show n
-          else return name
-      return (name', fmt)
+        name <- many $ try alphaNum <|> try (char '-') <|> char '.' <|> char '_'
+        mbColon <- optionMaybe $ char ':'
+        fmt <- case mbColon of
+            Nothing -> return Nothing
+            Just _ -> do
+                fmtStr <- concat <$> many formatSpecChar
+                return $ Just $ TL.pack fmtStr
+        name' <-
+            if null name
+                then do
+                    st <- getState
+                    let n = psNextIndex st
+                    modifyState $ \st -> st{psNextIndex = psNextIndex st + 1}
+                    return $ show n
+                else return name
+        return (name', fmt)
 
 -- | Parsec parser for string format.
 pBracesFormat :: Parser Format
